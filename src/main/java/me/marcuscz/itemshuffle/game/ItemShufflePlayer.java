@@ -11,6 +11,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static me.marcuscz.itemshuffle.NetworkingConstants.*;
 
@@ -67,7 +68,7 @@ public class ItemShufflePlayer {
         if (!completed && player.getInventory().contains(new ItemStack(item))) {
             completed = true;
             if (ItemShuffle.getInstance().getSettings().removeItems) {
-                player.getInventory().removeOne(new ItemStack(item));
+                player.getInventory().remove(itemStack -> itemStack.getItem() == item, 1, player.getInventory());
             }
             ItemShuffle.getInstance().broadcast("§aPlayer §a" + name + "§a has found their item!");
         }
