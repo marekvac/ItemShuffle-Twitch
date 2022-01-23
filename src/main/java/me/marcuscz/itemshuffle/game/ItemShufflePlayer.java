@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -97,6 +98,13 @@ public class ItemShufflePlayer {
         }
         String score = (fails == 0 ? "§2§l " : "§4§l ") + fails + " fails";
         ItemShuffle.getInstance().broadcast("§b§l" + name + "§7: " + score);
+    }
+
+    public void giveFood() {
+        if (player == null) {
+            return;
+        }
+        player.giveItemStack(new ItemStack(Items.COOKED_BEEF, 32));
     }
 
     public void updateTimer(int color) {

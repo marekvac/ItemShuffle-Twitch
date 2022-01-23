@@ -44,6 +44,9 @@ public class GameManager {
             playerManager.startVotingClients();
             playerManager.createNewVotes();
         }
+        if (ItemShuffle.getInstance().getSettings().giveFood) {
+            playerManager.giveFoods();
+        }
         active = true;
         return true;
     }

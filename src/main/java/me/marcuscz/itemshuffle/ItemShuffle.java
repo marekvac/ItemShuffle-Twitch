@@ -5,6 +5,7 @@ import me.marcuscz.itemshuffle.game.GameManager;
 import me.marcuscz.itemshuffle.game.GameSettings;
 import me.marcuscz.itemshuffle.game.ItemShufflePlayer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -88,6 +89,16 @@ public class ItemShuffle implements ModInitializer {
             ItemStack itemStack = buf.readItemStack();
             if (itemStack != null) {
                 gameManager.getItemManager().setQueueItem(player.getUuid(), itemStack.getItem());
+            }
+        });
+
+        // Auto give food feature
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            if (!GameManager.isActive()) {
+                return;
+            }
+            if (gameManager.getPlayerManager().isGamePlayer(newPlayer.getUuid())) {
+                gameManager.getPlayerManager().getPlayer(newPlayer.getUuid()).giveFood();
             }
         });
 

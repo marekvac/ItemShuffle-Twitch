@@ -72,6 +72,10 @@ public class PlayerManager {
         return allCompleted.get();
     }
 
+    public void giveFoods() {
+        players.values().forEach(ItemShufflePlayer::giveFood);
+    }
+
     public void updateTimers(int color) {
         if (ItemShuffle.getInstance().getSettings().showTimers) {
             players.values().forEach(player -> player.updateTimer(color));
