@@ -115,9 +115,9 @@ public class GameManager {
         playerManager.hideTimers();
         if (!playerManager.someoneFailed()) {
             showScore();
-            if (isSkip) {
+            if (isSkip || !ItemShuffle.getInstance().getSettings().pauseOnFail) {
                 nextRound();
-            } else if (ItemShuffle.getInstance().getSettings().pauseOnFail) {
+            } else {
                 pausedDueFail = true;
                 pause();
             }
