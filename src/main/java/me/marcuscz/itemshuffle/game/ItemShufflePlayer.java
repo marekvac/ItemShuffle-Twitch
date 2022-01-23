@@ -101,7 +101,7 @@ public class ItemShufflePlayer {
     }
 
     public void giveFood() {
-        if (player == null) {
+        if (player == null || player.getInventory().contains(new ItemStack(Items.COOKED_BEEF))) {
             return;
         }
         player.giveItemStack(new ItemStack(Items.COOKED_BEEF, 32));
