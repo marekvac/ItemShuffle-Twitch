@@ -1,6 +1,7 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
+import me.marcuscz.itemshuffle.game.phase.PhaseManager;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 
@@ -10,23 +11,23 @@ import java.util.stream.Collectors;
 
 public class ItemManager {
 
-    private final GameManager gameManager;
     private final Map<UUID, Item> votingQueueItems;
+    private final PhaseManager phaseManager;
 
-    public ItemManager(GameManager gameManager) {
-        this.gameManager = gameManager;
+    public ItemManager() {
         votingQueueItems = new HashMap<>();
+        phaseManager = new PhaseManager();
     }
 
-    public static Item getRandomItem() throws IllegalAccessException {
-        Field[] items = Items.class.getDeclaredFields();
-        List<Field> items1 = Arrays.stream(items).collect(Collectors.toList());
-        Random random = new Random();
-        Field field = items1.get(random.nextInt(items1.size()));
-        return (Item) field.get(Item.class);
+    public void nextRound() {
+        phaseManager.increaseRounds();
     }
 
-    public static List<Item> getRandomItemList(int size) throws IllegalAccessException {
+    public Item getRandomItem() {
+        return phaseManager.getItem();
+    }
+
+    public List<Item> getRandomItemList(int size) {
         List<Item> items = new ArrayList<>();
         while (items.size() < size) {
             Item item = getRandomItem();
@@ -37,7 +38,7 @@ public class ItemManager {
         return items;
     }
 
-    public void getRandomItemsForPlayers(Collection<ItemShufflePlayer> players) throws IllegalAccessException {
+    public void getRandomItemsForPlayers(Collection<ItemShufflePlayer> players) {
         Item item = null;
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.ALL_SAME) {
              item = getRandomItem();

@@ -107,13 +107,9 @@ public class ItemShuffleClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(NEXT_ROUND, (client, handler, buf, responseSender) -> {
             if (votingEnabled) {
-                try {
-                    votingClient.nextVote();
-                    hudRender.showVotes(true);
-                } catch (IOException e) {
-                    ItemShuffle.getLogger().error("Failed to start next voting round");
-                    e.printStackTrace();
-                }
+                votingClient.getItemManager().nextRound();
+                votingClient.nextVote();
+                hudRender.showVotes(true);
             }
         });
 

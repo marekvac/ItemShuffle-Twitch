@@ -16,6 +16,7 @@ public class VotingClient {
     private boolean paused;
     private final TwitchClient twitchClient;
     private static int totalVotes;
+    private final ItemManager itemManager;
 
     public VotingClient() throws IOException {
         items = new ArrayList<>();
@@ -24,6 +25,7 @@ public class VotingClient {
         twitchClient = new TwitchClient(this);
 
         voteID = 0;
+        itemManager = new ItemManager();
     }
 
     public void processVote(String message) {
@@ -36,18 +38,14 @@ public class VotingClient {
         }
     }
 
-    private void refreshItems() throws IOException {
+    private void refreshItems() {
         items.clear();
         List<Item> randomItems;
-        try {
-            randomItems = ItemManager.getRandomItemList(size);
-        } catch (IllegalAccessException e) {
-            throw new IOException("Failed to get random items");
-        }
+        randomItems = itemManager.getRandomItemList(size);
         randomItems.forEach(item -> items.add(new VotingItem(item)));
     }
 
-    public void nextVote() throws IOException {
+    public void nextVote() {
         paused = true;
         refreshItems();
         totalVotes = 0;
@@ -104,5 +102,9 @@ public class VotingClient {
 
     public void enableVoting() {
         enabled = true;
+    }
+
+    public ItemManager getItemManager() {
+        return itemManager;
     }
 }

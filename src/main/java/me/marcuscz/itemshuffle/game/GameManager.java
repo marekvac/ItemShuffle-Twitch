@@ -16,11 +16,10 @@ public class GameManager {
     private boolean itemMsgSent;
     private boolean timesUp;
     private PlayerManager playerManager;
-    private final ItemManager itemManager;
+    private ItemManager itemManager;
 
     public GameManager() {
         instance = this;
-        itemManager = new ItemManager(this);
     }
 
     public void initPlayerManager() {
@@ -39,6 +38,7 @@ public class GameManager {
         if (active) {
             return false;
         }
+        itemManager = new ItemManager();
         nextRound();
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
             playerManager.startVotingClients();
@@ -89,19 +89,14 @@ public class GameManager {
         playerManager.refreshPlayers();
         time = ItemShuffle.getInstance().getSettings().time;
         currentTime = time;
-        try {
-            itemManager.getRandomItemsForPlayers(playerManager.getPlayers().values());
-            itemMsgSent = false;
-            paused = pausedDueFail = false;
-            timesUp = false;
-            playerManager.updateTimers();
-            if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
-                playerManager.createNewVotes();
-            }
-        } catch (IllegalAccessException e) {
-            ItemShuffle.getLogger().error("Failed to get items for players!");
-            ItemShuffle.getInstance().broadcast("§cFailed to get items for players!");
-            e.printStackTrace();
+        itemManager.nextRound();
+        itemManager.getRandomItemsForPlayers(playerManager.getPlayers().values());
+        itemMsgSent = false;
+        paused = pausedDueFail = false;
+        timesUp = false;
+        playerManager.updateTimers();
+        if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
+            playerManager.createNewVotes();
         }
     }
 
