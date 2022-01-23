@@ -86,6 +86,7 @@ public class GameManager {
             nextRound();
             return true;
         }
+        playerManager.updateTimers();
         paused = false;
         ItemShuffle.getInstance().broadcast("§aResumed!");
         return true;
