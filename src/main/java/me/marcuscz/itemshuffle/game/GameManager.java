@@ -134,7 +134,6 @@ public class GameManager {
     public void showScore() {
         ItemShuffle.getInstance().broadcast("§7Score:");
         playerManager.broadcastScore(true);
-        ItemShuffle.getInstance().broadcast("");
     }
 
     public static boolean isActive() {
