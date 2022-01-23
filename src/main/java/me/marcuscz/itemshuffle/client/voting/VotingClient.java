@@ -41,7 +41,7 @@ public class VotingClient {
     private void refreshItems() {
         items.clear();
         List<Item> randomItems;
-        randomItems = itemManager.getRandomItemList(size);
+        randomItems = itemManager.getVotingItems(size);
         randomItems.forEach(item -> items.add(new VotingItem(item)));
     }
 

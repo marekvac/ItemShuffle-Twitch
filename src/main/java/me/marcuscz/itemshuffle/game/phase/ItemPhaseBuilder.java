@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class ItemPhaseBuilder {
 
     private final List<Item> items;
-    private final List<Item> allItems;
+    private List<Item> allItems;
 
     public ItemPhaseBuilder() {
         this.items = new ArrayList<>();
@@ -45,6 +45,11 @@ public class ItemPhaseBuilder {
     public ItemPhaseBuilder addLike(String q) {
         List<Item> query = allItems.stream().filter(item -> item.getTranslationKey().toLowerCase().contains(q.toLowerCase())).collect(Collectors.toList());
         this.items.addAll(query);
+        return this;
+    }
+
+    public ItemPhaseBuilder not(String q) {
+        allItems = allItems.stream().filter(item -> !item.getTranslationKey().toLowerCase().contains(q.toLowerCase())).collect(Collectors.toList());
         return this;
     }
 

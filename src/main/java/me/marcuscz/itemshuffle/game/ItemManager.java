@@ -27,15 +27,8 @@ public class ItemManager {
         return phaseManager.getItem();
     }
 
-    public List<Item> getRandomItemList(int size) {
-        List<Item> items = new ArrayList<>();
-        while (items.size() < size) {
-            Item item = getRandomItem();
-            if (!items.contains(item)) {
-                items.add(item);
-            }
-        }
-        return items;
+    public List<Item> getVotingItems(int size) {
+        return phaseManager.getVotingItems(size);
     }
 
     public void getRandomItemsForPlayers(Collection<ItemShufflePlayer> players) {
