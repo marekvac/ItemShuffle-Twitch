@@ -69,7 +69,7 @@ public class ItemShufflePlayer {
             if (ItemShuffle.getInstance().getSettings().removeItems) {
                 player.getInventory().removeOne(new ItemStack(item));
             }
-            ItemShuffle.getInstance().broadcast("§aPlayer " + name + " has found their item!");
+            ItemShuffle.getInstance().broadcast("§aPlayer §a" + name + "§a has found their item!");
         }
     }
 
@@ -78,7 +78,7 @@ public class ItemShufflePlayer {
             return false;
         }
         fails++;
-        ItemShuffle.getInstance().broadcast("§4Player " + name + " failed their item!");
+        ItemShuffle.getInstance().broadcast("§4Player §c" + name + "§4 failed their item!");
         return true;
     }
 
@@ -96,8 +96,8 @@ public class ItemShufflePlayer {
         if (fails == 0 && onlyFailed) {
             return;
         }
-        String score = (fails == 0 ? "§2§l " : "§4§l ") + fails + " fails";
-        ItemShuffle.getInstance().broadcast("§b§l" + name + "§7: " + score);
+        String score = (fails == 0 ? "§2 " : "§c ") + fails + " fails";
+        ItemShuffle.getInstance().broadcast("§f" + name + "§7: " + score);
     }
 
     public void giveFood() {

@@ -2,6 +2,9 @@ package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Style;
 import net.minecraft.util.math.MathHelper;
 
 public class GameManager {
@@ -71,7 +74,7 @@ public class GameManager {
         }
         paused = true;
         playerManager.hideTimers();
-        ItemShuffle.getInstance().broadcast("§6Game has been paused!");
+        ItemShuffle.getInstance().broadcast(new LiteralText("§6Game has been paused! ").append(new LiteralText("§2§nResume").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle resume")))));
         return true;
     }
 
@@ -122,15 +125,15 @@ public class GameManager {
                 pause();
             }
         } else {
-            ItemShuffle.getInstance().broadcast("§2Everyone found their item!");
+            ItemShuffle.getInstance().broadcast("§aEveryone found their item!");
             nextRound();
         }
     }
 
     public void showScore() {
-        ItemShuffle.getInstance().broadcast("§7--- [ §6Current Score §7] ---");
+        ItemShuffle.getInstance().broadcast("§7Score:");
         playerManager.broadcastScore(true);
-        ItemShuffle.getInstance().broadcast("§7--- --- --- ---");
+        ItemShuffle.getInstance().broadcast("");
     }
 
     public static boolean isActive() {
@@ -192,7 +195,7 @@ public class GameManager {
 
                 int time = currentTime / 20;
                 String sec = time > 1 ? "seconds" : "second";
-                ItemShuffle.getInstance().broadcast("§c" + time + " " + sec + " remain!", true);
+                ItemShuffle.getInstance().broadcast("§c§l" + time + " " + sec + " remain!", true);
             }
         }
     }

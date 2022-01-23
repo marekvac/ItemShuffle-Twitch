@@ -47,7 +47,7 @@ public class ItemShuffleClient implements ClientModInitializer {
             String key = buf.readString();
             String lang = TranslationStorage.getInstance().get(key);
             if (client.player != null) {
-                client.player.sendMessage(new LiteralText("§aYour material: " + lang), false);
+                client.player.sendMessage(new LiteralText("§aYour material: §6" + lang), false);
             }
         });
 

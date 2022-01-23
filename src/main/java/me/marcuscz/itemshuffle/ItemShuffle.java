@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.MessageType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -122,8 +123,12 @@ public class ItemShuffle implements ModInitializer {
         return server;
     }
 
+    public void broadcast(Text message) {
+        server.getPlayerManager().broadcastChatMessage(message, MessageType.CHAT, Util.NIL_UUID);
+    }
+
     public void broadcast(String message) {
-        server.getPlayerManager().broadcastChatMessage(new LiteralText(message), MessageType.CHAT, Util.NIL_UUID);
+        broadcast(new LiteralText(message));
     }
 
     public void broadcast(String message, boolean actionBar) {
