@@ -8,7 +8,7 @@
     "MarcusCZ"
   ],
   "contact": {},
-  "license": "MIT",
+  "license": "GPL",
   "icon": "assets/ItemShuffle-Twitch/icon.png",
   "environment": "*",
   "entrypoints": {
