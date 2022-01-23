@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "itemshuffle-twitch",
+  "version": "${version}",
+  "name": "ItemShuffle Twitch",
+  "description": "ItemShuffle inspired by Dream's Block Shuffle, but streamer's chat can choose items.",
+  "authors": [
+    "MarcusCZ"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/ItemShuffle-Twitch/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "me.marcuscz.itemshuffle.client.ItemShuffleClient"
+    ],
+    "main": [
+      "me.marcuscz.itemshuffle.ItemShuffle"
+    ]
+  },
+  "mixins": [
+    "itemshuffle.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.11.6",
+    "fabric": "*",
+    "minecraft": "1.17.1"
+  }
+}
