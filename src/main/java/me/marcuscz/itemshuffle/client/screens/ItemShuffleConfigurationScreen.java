@@ -39,9 +39,9 @@ public class ItemShuffleConfigurationScreen extends Screen {
                 150,
                 20,
                 "Duration",
-                (settings.time) / 12000d, (slider, title1, value) -> new LiteralText("Value: " + ((int) floor(value * 10)) + "m"),
+                (settings.time-1200) / 12000d, (slider, title1, value) -> new LiteralText("Value: " + ((int) floor(value * 10+1)) + "m"),
                 value -> {
-                    settings.time = (int) floor((value * 10)) * 1200;
+                    settings.time = (int) floor((value * 10)) * 1200 +1200;
                     changes = true;
                 }
         );
