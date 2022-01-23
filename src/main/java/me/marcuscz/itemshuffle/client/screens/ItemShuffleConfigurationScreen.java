@@ -93,7 +93,35 @@ public class ItemShuffleConfigurationScreen extends Screen {
         );
         this.addDrawableChild(showTimersWidget);
 
-        ButtonWidget integrationSettings = new ButtonWidget(this.width / 2 - 85, 100, 170, 20, new TranslatableText("entropy.options.integrations.title"), button -> client.setScreen(new TwitchConfigurationScreen(this)));
+        ButtonWidget pauseOnFailWidget = new ButtonWidget(
+                this.width / 2 - 160,
+                100,
+                150,
+                20,
+                new LiteralText("Pause On Fail: " + (settings.pauseOnFail ? "On" : "Off")),
+                button -> {
+                    settings.pauseOnFail = !settings.pauseOnFail;
+                    button.setMessage(new LiteralText("Pause On Fail: " + (settings.pauseOnFail ? "On" : "Off")));
+                    changes = true;
+                }
+        );
+        this.addDrawableChild(pauseOnFailWidget);
+
+        ButtonWidget giveFoodWidget = new ButtonWidget(
+                this.width / 2 + 10,
+                100,
+                150,
+                20,
+                new LiteralText("Give Food: " + (settings.giveFood ? "On" : "Off")),
+                button -> {
+                    settings.giveFood = !settings.giveFood;
+                    button.setMessage(new LiteralText("Give Food: " + (settings.giveFood ? "On" : "Off")));
+                    changes = true;
+                }
+        );
+        this.addDrawableChild(giveFoodWidget);
+
+        ButtonWidget integrationSettings = new ButtonWidget(this.width / 2 - 85, 125, 170, 20, new LiteralText("Twitch Settings"), button -> client.setScreen(new TwitchConfigurationScreen(this)));
         if (MinecraftClient.getInstance().getGame().getCurrentSession() != null) {
             integrationSettings.active = false;
         }

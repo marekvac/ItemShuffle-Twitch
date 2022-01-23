@@ -10,6 +10,8 @@ public class GameSettings {
     public int time = 6000;
     public boolean twitchEnabled = false;
     public boolean showTimers = true;
+    public boolean pauseOnFail = true;
+    public boolean giveFood = true;
 
     public GameSettings() {
 
@@ -21,6 +23,8 @@ public class GameSettings {
         time = buf.readInt();
         twitchEnabled = buf.readBoolean();
         showTimers = buf.readBoolean();
+        pauseOnFail = buf.readBoolean();
+        giveFood = buf.readBoolean();
     }
 
     @Override
@@ -31,6 +35,8 @@ public class GameSettings {
                 ", time=" + time +
                 ", twitchEnabled=" + twitchEnabled +
                 ", showTimers=" + showTimers +
+                ", pauseOnFail=" + pauseOnFail +
+                ", giveFood=" + giveFood +
                 '}';
     }
 
@@ -45,6 +51,8 @@ public class GameSettings {
         buf.writeInt(time);
         buf.writeBoolean(twitchEnabled);
         buf.writeBoolean(showTimers);
+        buf.writeBoolean(pauseOnFail);
+        buf.writeBoolean(giveFood);
         return buf;
     }
 }
