@@ -2,16 +2,13 @@ package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static me.marcuscz.itemshuffle.NetworkingConstants.*;
 
@@ -29,10 +26,6 @@ public class ItemShufflePlayer {
         this.player = player;
         uuid = player.getUuid();
         name = player.getName().asString();
-    }
-
-    public PlayerEntity getPlayer() {
-        return player;
     }
 
     public Item getItem() {
@@ -54,10 +47,6 @@ public class ItemShufflePlayer {
 
     public boolean isCompleted() {
         return completed;
-    }
-
-    public int getFails() {
-        return fails;
     }
 
     public UUID getUuid() {
@@ -133,10 +122,6 @@ public class ItemShufflePlayer {
 
     public static void sendGameStopped(ServerPlayerEntity player) {
         ServerPlayNetworking.send(player, GAME_STOP, PacketByteBufs.empty());
-    }
-
-    public boolean isTwitchEnabled() {
-        return twitchEnabled;
     }
 
     // TWITCH CLIENT
