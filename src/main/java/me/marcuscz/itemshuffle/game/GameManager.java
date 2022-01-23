@@ -111,11 +111,12 @@ public class GameManager {
     public void endRound(boolean isSkip) {
         playerManager.hideTimers();
         if (!playerManager.someoneFailed()) {
-            pausedDueFail = true;
             showScore();
-            pause();
             if (isSkip) {
                 nextRound();
+            } else if (ItemShuffle.getInstance().getSettings().pauseOnFail) {
+                pausedDueFail = true;
+                pause();
             }
         } else {
             ItemShuffle.getInstance().broadcast("§2Everyone found their item!");
