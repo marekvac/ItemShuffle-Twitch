@@ -11,10 +11,6 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 repositories {
-        maven {
-            name = 'TerraformersMC'
-            url = 'https://maven.terraformersmc.com/'
-        }
         // Repository for pircbotx.
         maven { url 'https://jitpack.io' }
         jcenter()
@@ -30,8 +26,6 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-    modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 
 //    modImplementation "io.github.ladysnake:satin:${satin_version}"
 //    include "io.github.ladysnake:satin:${satin_version}"
