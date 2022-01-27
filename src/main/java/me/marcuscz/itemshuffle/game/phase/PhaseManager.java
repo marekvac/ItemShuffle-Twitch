@@ -35,6 +35,7 @@ public class PhaseManager {
                 .addLike("carpet")
                 .addLike("terracotta")
                 .not("brown")
+                .not("petrified")
                 .addItems(
                         Items.CRAFTING_TABLE,
                         Items.FURNACE,
@@ -164,9 +165,14 @@ public class PhaseManager {
                     items.add(currentItem);
                 }
             }
-            cp = phases.get(1);
+            if (random.nextBoolean()) {
+                cp = phases.get(1);
+            }
             items.add(cp.getItems().get(random.nextInt(cp.getItems().size())));
-            cp = phases.get(2);
+            cp = phases.get(0);
+            if (random.nextBoolean()) {
+                cp = phases.get(2);
+            }
             items.add(cp.getItems().get(random.nextInt(cp.getItems().size())));
         }
         return items;
@@ -174,7 +180,7 @@ public class PhaseManager {
 
     public Item getItem() {
         Random random = new Random();
-        if (currentPhase > 0) {
+        if (currentPhase > 0 && currentPhase < phases.size()) {
             if (random.nextInt(4) < 3) {
                 ItemPhase cp = phases.get(currentPhase);
                 return cp.getItems().get(random.nextInt(cp.getItems().size()));
@@ -185,7 +191,7 @@ public class PhaseManager {
 
     public void increaseRounds() {
         roundsLasted++;
-        if (roundsLasted > phases.get(currentPhase).getRoundDuration()) {
+        if (roundsLasted > phases.get(currentPhase).getRoundDuration() && currentPhase < phases.size()-1) {
             currentPhase++;
             if (currentPhase < phases.size()) {
                 ItemShuffle.getLogger().info("New Phase");
