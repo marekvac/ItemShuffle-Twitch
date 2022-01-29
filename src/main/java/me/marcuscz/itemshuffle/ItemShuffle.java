@@ -99,7 +99,10 @@ public class ItemShuffle implements ModInitializer {
                 return;
             }
             if (gameManager.getPlayerManager().isGamePlayer(newPlayer.getUuid())) {
-                gameManager.getPlayerManager().getPlayer(newPlayer.getUuid()).giveFood();
+                gameManager.getPlayerManager().getPlayer(newPlayer.getUuid()).setPlayer(newPlayer);
+                if (settings.giveFood) {
+                    gameManager.getPlayerManager().getPlayer(newPlayer.getUuid()).giveFood();
+                }
             }
         });
 
