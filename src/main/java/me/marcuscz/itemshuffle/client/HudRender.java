@@ -104,8 +104,6 @@ public class HudRender {
 
     public void setColor(int color) {
         this.color = color;
-        System.out.println("Got color: " + color);
-        System.out.println("Color from math: " + MathHelper.packRgb(70, 150, 70));
     }
 
     public void setItem(Item item) {
