@@ -51,6 +51,7 @@ public class ItemShuffle implements ModInitializer {
             ServerPlayNetworking.send(handler.getPlayer(), NetworkingConstants.SETTING_SYNC, settings.toPacket());
             if (!GameManager.isActive()) {
                 ItemShufflePlayer.hideTimerPlayer(handler.getPlayer());
+                ItemShufflePlayer.hideItemPlayer(handler.getPlayer());
                 // If player has active voting, stop it
                 ItemShufflePlayer.sendGameStopped(handler.getPlayer());
                 return;
