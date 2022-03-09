@@ -96,9 +96,7 @@ public class PhaseManager {
                 previous.increaseAllItems(40);
                 availableItems.addAll(phases.get(currentPhase).getItems());
                 roundsLasted = 1;
-//                ItemShuffle.getLogger().info(availableItems);
                 ItemShuffle.getLogger().info("New Phase");
-                ItemShuffle.getInstance().broadcast("§bNew phase!");
             }
         }
     }
