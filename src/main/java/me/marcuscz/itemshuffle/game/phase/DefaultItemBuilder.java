@@ -20,8 +20,6 @@ public class DefaultItemBuilder {
         List<Item> phase1 = new ItemPhaseBuilder()
                 .addLike("oak")
                 .addLike("birch")
-                .addLike("spruce")
-                .addLike("acacia")
                 .addLike("concrete")
                 .addLike("wool")
                 .addLike("andesite")
@@ -32,6 +30,7 @@ public class DefaultItemBuilder {
                 .addLike("sandstone")
                 .addLike("carpet")
                 .addLike("terracotta")
+                .not("green")
                 .not("brown")
                 .not("petrified")
                 .addItems(
@@ -41,7 +40,6 @@ public class DefaultItemBuilder {
                         Items.STONE_BRICKS,
                         Items.STONE_BUTTON,
                         Items.HAY_BLOCK,
-                        Items.ICE,
                         Items.LANTERN,
                         Items.BRICKS,
                         Items.BRICK_WALL,
@@ -55,55 +53,51 @@ public class DefaultItemBuilder {
                         Items.GRINDSTONE,
                         Items.SMITHING_TABLE,
                         Items.STONECUTTER,
-                        Items.PUFFERFISH,
-                        Items.COD,
-                        Items.COOKED_COD,
                         Items.CHICKEN,
-                        Items.COOKED_MUTTON
+                        Items.COOKED_MUTTON,
+                        Items.STONE,
+                        Items.GRASS_BLOCK,
+                        Items.DIRT,
+                        Items.WATER_BUCKET
                 )
                 .getItems();
-        phases.add(new ItemPhase(1).setItems(phase1));
+        phases.add(new ItemPhase(2).setItems(phase1));
 
         List<Item> phase2 = new ItemPhaseBuilder()
-                .addLike("pumpkin")
-                .addLike("melon")
-                .addLike("jungle")
-                .addLike("red_sand")
-                .addLike("brown")
+                .addLike("spruce")
+                .addLike("acacia")
+                .addLike("green")
                 .addItems(
                         Items.ANVIL,
                         Items.IRON_BLOCK,
                         Items.GOLD_BLOCK,
                         Items.BELL,
-                        Items.EMERALD,
                         Items.JUKEBOX,
                         Items.PISTON,
-                        Items.STICKY_PISTON,
-                        Items.SLIME_BALL,
                         Items.REDSTONE_BLOCK,
                         Items.REPEATER,
                         Items.TNT,
                         Items.MINECART,
                         Items.CAMPFIRE,
-                        Items.MAP,
                         Items.CLOCK,
                         Items.BOOK,
-                        Items.CAKE,
-                        Items.COOKIE,
                         Items.BEETROOT,
                         Items.MUSHROOM_STEW,
                         Items.BROWN_MUSHROOM,
-                        Items.RED_MUSHROOM
+                        Items.RED_MUSHROOM,
+                        Items.LAVA_BUCKET
                 )
                 .getItems();
         phases.add(new ItemPhase(2).setItems(phase2));
 
         // Nether phase
         List<Item> phase3 = new ItemPhaseBuilder()
-                .addLike("basalt")
-                .addLike("crimson")
-                .addLike("warped")
                 .addItems(
+                        Items.CRIMSON_DOOR,
+                        Items.CRIMSON_BUTTON,
+                        Items.CRIMSON_FUNGUS,
+                        Items.BASALT,
+                        Items.SMOOTH_BASALT,
                         Items.NETHERRACK,
                         Items.GLOWSTONE,
                         Items.REDSTONE_LAMP,
