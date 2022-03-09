@@ -1,6 +1,8 @@
 package me.marcuscz.itemshuffle.game.phase;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
@@ -9,12 +11,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class PhaseManager {
 
@@ -29,8 +29,20 @@ public class PhaseManager {
 
         File f = new File("./config/itemshuffle/phases.json");
         if (!f.exists()) {
-            DefaultItemBuilder builder = new DefaultItemBuilder();
-            builder.saveJson();
+            Optional<ModContainer> container = FabricLoader.getInstance().getModContainer("itemshuffle-twitch");
+            if (container.isEmpty()) {
+                throw new FileNotFoundException("failed to get mod container");
+            }
+            File defaultConfig = new File(String.valueOf(container.get().getPath("phases.json")));
+            InputStream is = new FileInputStream(defaultConfig);
+            OutputStream os = new FileOutputStream(f);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+            }
+            is.close();
+            os.close();
         }
 
         JSONParser jsonParser = new JSONParser();
@@ -50,7 +62,6 @@ public class PhaseManager {
     }
 
     private void parsePhase(JSONObject phase) throws ClassCastException {
-        Long num = (Long) phase.get("phase");
         Long rounds = (Long) phase.get("rounds");
         JSONArray items = (JSONArray) phase.get("items");
         ItemPhaseBuilder builder = new ItemPhaseBuilder();
@@ -73,8 +84,6 @@ public class PhaseManager {
     }
 
     public void printItems() {
-//        List<PhaseItem> items = this.availableItems.stream().toList();
-//        items.sort(Comparator.comparingInt(PhaseItem::getChance));
         ItemShuffle.getLogger().info(availableItems);
     }
 
@@ -84,7 +93,7 @@ public class PhaseManager {
             currentPhase++;
             if (currentPhase < phases.size()) {
                 ItemPhase previous = phases.get(currentPhase-1);
-                previous.increaseAllItems(30);
+                previous.increaseAllItems(40);
                 availableItems.addAll(phases.get(currentPhase).getItems());
                 roundsLasted = 1;
 //                ItemShuffle.getLogger().info(availableItems);
