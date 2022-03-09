@@ -3,24 +3,24 @@ package me.marcuscz.itemshuffle.game;
 import me.marcuscz.itemshuffle.ItemShuffle;
 import me.marcuscz.itemshuffle.game.phase.PhaseManager;
 import net.minecraft.item.Item;
-import net.minecraft.item.Items;
+import org.json.simple.parser.ParseException;
 
-import java.lang.reflect.Field;
+import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ItemManager {
 
     private final Map<UUID, Item> votingQueueItems;
     private final PhaseManager phaseManager;
 
-    public ItemManager() {
+    public ItemManager() throws IOException, ParseException {
         votingQueueItems = new HashMap<>();
         phaseManager = new PhaseManager();
     }
 
-    public void nextRound() {
-        phaseManager.increaseRounds();
+    public void nextRound(double skipFactor) {
+        phaseManager.increaseRounds(skipFactor);
+        phaseManager.printItems();
     }
 
     public Item getRandomItem() {

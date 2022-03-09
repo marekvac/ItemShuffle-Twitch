@@ -8,15 +8,16 @@ import me.marcuscz.itemshuffle.client.voting.VotingItem;
 import me.marcuscz.itemshuffle.game.GameSettings;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.TranslationStorage;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.LiteralText;
+import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.FileReader;
@@ -33,6 +34,7 @@ public class ItemShuffleClient implements ClientModInitializer {
     private TwitchSettings twitchSettings;
     private VotingClient votingClient;
     public boolean votingEnabled = false;
+    public Item lastItem;
 
     @Override
     public void onInitializeClient() {
@@ -44,7 +46,11 @@ public class ItemShuffleClient implements ClientModInitializer {
         HudRenderCallback.EVENT.register(hudRender::renderTimer);
 
         ClientPlayNetworking.registerGlobalReceiver(ITEM_MESSAGES, (client, handler, buf, responseSender) -> {
-            String key = buf.readString();
+//            String key = buf.readString();
+            ItemStack itemStack = buf.readItemStack();
+            lastItem = itemStack.getItem();
+            hudRender.setItem(lastItem);
+            String key = lastItem.getTranslationKey();
             String lang = TranslationStorage.getInstance().get(key);
             if (client.player != null) {
                 client.player.sendMessage(new LiteralText("§aYour material: §6" + lang), false);
@@ -60,6 +66,9 @@ public class ItemShuffleClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(TIMER_HIDE, (client, handler, buf, responseSender) -> hudRender.showTimer(false));
 
+        ClientPlayNetworking.registerGlobalReceiver(SHOW_ITEM, (client, handler, buf, responseSender) -> hudRender.showItem(true));
+        ClientPlayNetworking.registerGlobalReceiver(HIDE_ITEM, (client, handler, buf, responseSender) -> hudRender.showItem(false));
+
         ClientPlayNetworking.registerGlobalReceiver(SETTING_SYNC, (client, handler, buf, responseSender) -> {
             ItemShuffle.getInstance().setSettings(new GameSettings(buf));
             ItemShuffle.getLogger().info("Client settings updated");
@@ -72,7 +81,7 @@ public class ItemShuffleClient implements ClientModInitializer {
                     votingClient = new VotingClient();
                     votingEnabled = true;
                     hudRender.showVotes(true);
-                } catch (IOException e) {
+                } catch (IOException | ParseException e) {
                     ItemShuffle.getLogger().error("Failed to start voting client");
                     e.printStackTrace();
                     response.writeBoolean(false);
@@ -107,8 +116,9 @@ public class ItemShuffleClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(NEXT_ROUND, (client, handler, buf, responseSender) -> {
             if (votingEnabled) {
-                votingClient.getItemManager().nextRound();
-                votingClient.nextVote();
+                int[] ids = buf.readIntArray();
+//                votingClient.getItemManager().nextRound(1);
+                votingClient.nextVote(ids);
                 hudRender.showVotes(true);
             }
         });

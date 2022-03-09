@@ -1,7 +1,8 @@
 package me.marcuscz.itemshuffle.client.voting;
 
-import me.marcuscz.itemshuffle.game.ItemManager;
 import net.minecraft.item.Item;
+import net.minecraft.util.registry.Registry;
+import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,23 +10,20 @@ import java.util.List;
 
 public class VotingClient {
 
-    private final int size = 4;
     private final List<VotingItem> items;
     private int voteID;
     private boolean enabled;
     private boolean paused;
     private final TwitchClient twitchClient;
     private static int totalVotes;
-    private final ItemManager itemManager;
 
-    public VotingClient() throws IOException {
+    public VotingClient() throws IOException, ParseException {
         items = new ArrayList<>();
 
         // Start twitch bot
         twitchClient = new TwitchClient(this);
 
         voteID = 0;
-        itemManager = new ItemManager();
     }
 
     public void processVote(String message) {
@@ -38,16 +36,17 @@ public class VotingClient {
         }
     }
 
-    private void refreshItems() {
+    private void setItems(int[] ids) {
         items.clear();
-        List<Item> randomItems;
-        randomItems = itemManager.getVotingItems(size);
-        randomItems.forEach(item -> items.add(new VotingItem(item)));
+        for (int id : ids) {
+            Item item = Registry.ITEM.get(id);
+            items.add(new VotingItem(item));
+        }
     }
 
-    public void nextVote() {
+    public void nextVote(int[] ids) {
         paused = true;
-        refreshItems();
+        this.setItems(ids);
         totalVotes = 0;
         voteID++;
         paused = false;
@@ -102,9 +101,5 @@ public class VotingClient {
 
     public void enableVoting() {
         enabled = true;
-    }
-
-    public ItemManager getItemManager() {
-        return itemManager;
     }
 }

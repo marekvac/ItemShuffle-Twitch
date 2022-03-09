@@ -8,7 +8,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.registry.Registry;
 
+import java.util.List;
 import java.util.UUID;
 
 import static me.marcuscz.itemshuffle.NetworkingConstants.*;
@@ -77,9 +79,10 @@ public class ItemShufflePlayer {
         if (player == null) {
             return;
         }
-        String key = item.getTranslationKey();
+//        String key = item.getTranslationKey();
         PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeString(key);
+//        buf.writeString(key);
+        buf.writeItemStack(new ItemStack(item));
         ServerPlayNetworking.send(player, ITEM_MESSAGES, buf);
     }
 
@@ -116,13 +119,34 @@ public class ItemShufflePlayer {
         hideTimerPlayer(player);
     }
 
+    public void showItem() {
+        if (player == null) {
+            return;
+        }
+        showItemPlayer(player);
+    }
+
+    public void hideItem() {
+        if (player == null) {
+            return;
+        }
+        hideItemPlayer(player);
+    }
+
     public static void hideTimerPlayer(ServerPlayerEntity player) {
         ServerPlayNetworking.send(player, TIMER_HIDE, PacketByteBufs.empty());
     }
 
-
     public static void sendGameStopped(ServerPlayerEntity player) {
         ServerPlayNetworking.send(player, GAME_STOP, PacketByteBufs.empty());
+    }
+
+    public static void showItemPlayer(ServerPlayerEntity player) {
+        ServerPlayNetworking.send(player, SHOW_ITEM, PacketByteBufs.empty());
+    }
+
+    public static void hideItemPlayer(ServerPlayerEntity player) {
+        ServerPlayNetworking.send(player, HIDE_ITEM, PacketByteBufs.empty());
     }
 
     // TWITCH CLIENT
@@ -135,8 +159,16 @@ public class ItemShufflePlayer {
         this.twitchEnabled = twitchEnabled;
     }
 
-    public void createNewVoting() {
-        ServerPlayNetworking.send(player, NEXT_ROUND, PacketByteBufs.empty());
+    public void createNewVoting(List<Item> itemList) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        int[] ids = new int[itemList.size()];
+        int i = 0;
+        for (Item item1 : itemList) {
+            ids[i] = Registry.ITEM.getRawId(item1);
+            i++;
+        }
+        buf.writeIntArray(ids);
+        ServerPlayNetworking.send(player, NEXT_ROUND, buf);
     }
 
     public void askClientForWinner() {
