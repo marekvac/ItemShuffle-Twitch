@@ -102,4 +102,8 @@ public class VotingClient {
     public void enableVoting() {
         enabled = true;
     }
+
+    public boolean isPaused() {
+        return paused;
+    }
 }

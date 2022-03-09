@@ -11,6 +11,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HudRender {
@@ -41,13 +42,14 @@ public class HudRender {
     }
 
     private void renderVoting(MatrixStack matrixStack) {
-        if (!showVotes || !ItemShuffleClient.getInstance().votingEnabled || ItemShuffleClient.getInstance().getVotingClient().getItems().size() == 0) {
+        if (!showVotes || !ItemShuffleClient.getInstance().votingEnabled || ItemShuffleClient.getInstance().getVotingClient().isPaused() || ItemShuffleClient.getInstance().getVotingClient().getItems().size() == 0) {
             return;
         }
 
         DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, new LiteralText("Total votes: " + VotingClient.getTotalVotes()), 10, 20, MathHelper.packRgb(255, 255, 255));
 
-        List<VotingItem> items = ItemShuffleClient.getInstance().getVotingClient().getItems();
+        List<VotingItem> items = new ArrayList<>(ItemShuffleClient.getInstance().getVotingClient().getItems());
+
         int i = 0;
         int altOffset = ItemShuffleClient.getInstance().getVotingClient().getVoteID() % 2 == 0 ? 4 : 0;
         for (VotingItem item : items) {
