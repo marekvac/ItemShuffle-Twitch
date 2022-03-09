@@ -4,10 +4,11 @@ import me.marcuscz.itemshuffle.client.voting.VotingClient;
 import me.marcuscz.itemshuffle.client.voting.VotingItem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.item.Item;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.List;
@@ -15,14 +16,19 @@ import java.util.List;
 public class HudRender {
 
     private boolean showTimer;
+    private boolean showItem;
     private int time;
     private int currentTime;
     private int color;
+    private Item item;
     private final MinecraftClient minecraftClient = MinecraftClient.getInstance();
     private boolean showVotes = false;
 
     public void renderTimer(MatrixStack matrixStack, float tickDelta) {
         renderVoting(matrixStack);
+        if (showItem) {
+            renderItem(matrixStack);
+        }
         if (!showTimer) {
             return;
         }
@@ -59,6 +65,15 @@ public class HudRender {
 
     }
 
+    private void renderItem(MatrixStack matrixStack) {
+        if (item == null) {
+            return;
+        }
+        String name = TranslationStorage.getInstance().get(item.getTranslationKey());
+        Text text = new LiteralText("§7Your item: §f§l" + name);
+        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, text, 10, 106, MathHelper.packRgb(255,255,255));
+    }
+
     private double getProgress() {
         double dTime = time;
         double timeElapsed = time - currentTime;
@@ -67,6 +82,10 @@ public class HudRender {
 
     public void showTimer(boolean showTimer) {
         this.showTimer = showTimer;
+    }
+
+    public void showItem(boolean showItem) {
+        this.showItem = showItem;
     }
 
     public void setTime(int time) {
@@ -85,6 +104,10 @@ public class HudRender {
         this.color = color;
         System.out.println("Got color: " + color);
         System.out.println("Color from math: " + MathHelper.packRgb(70, 150, 70));
+    }
+
+    public void setItem(Item item) {
+        this.item = item;
     }
 
     public void tick(MinecraftClient minecraftClient) {

@@ -6,6 +6,9 @@ import net.minecraft.text.ClickEvent;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Style;
 import net.minecraft.util.math.MathHelper;
+import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
 
 public class GameManager {
 
@@ -41,11 +44,18 @@ public class GameManager {
         if (active) {
             return false;
         }
-        itemManager = new ItemManager();
+        try {
+            itemManager = new ItemManager();
+        } catch (IOException | ParseException e) {
+            ItemShuffle.getInstance().broadcast("§4Failed to load items from config! Please check phases.json file.");
+            e.printStackTrace();
+            return true;
+        }
+
         nextRound();
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
             playerManager.startVotingClients();
-            playerManager.createNewVotes();
+            playerManager.createNewVotes(itemManager);
         }
         if (ItemShuffle.getInstance().getSettings().giveFood) {
             playerManager.giveFoods();
@@ -96,14 +106,17 @@ public class GameManager {
         playerManager.refreshPlayers();
         time = ItemShuffle.getInstance().getSettings().time;
         currentTime = time;
-        itemManager.nextRound();
+        itemManager.nextRound(pausedDueFail ? 0.5 : 1);
         itemManager.getRandomItemsForPlayers(playerManager.getPlayers().values());
         itemMsgSent = false;
         paused = pausedDueFail = false;
         timesUp = false;
         playerManager.updateTimers();
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
-            playerManager.createNewVotes();
+            playerManager.createNewVotes(itemManager);
+        }
+        if (ItemShuffle.getInstance().getSettings().showItems) {
+            playerManager.showItems();
         }
     }
 
@@ -117,12 +130,13 @@ public class GameManager {
 
     public void endRound(boolean isSkip) {
         playerManager.hideTimers();
+        playerManager.hideItems();
         if (!playerManager.someoneFailed()) {
             showScore();
+            pausedDueFail = true;
             if (isSkip || !ItemShuffle.getInstance().getSettings().pauseOnFail) {
                 nextRound();
             } else {
-                pausedDueFail = true;
                 pause();
             }
         } else {

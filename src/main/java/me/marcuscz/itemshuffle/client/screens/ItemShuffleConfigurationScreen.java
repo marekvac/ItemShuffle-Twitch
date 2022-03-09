@@ -121,7 +121,21 @@ public class ItemShuffleConfigurationScreen extends Screen {
         );
         this.addDrawableChild(giveFoodWidget);
 
-        ButtonWidget integrationSettings = new ButtonWidget(this.width / 2 - 85, 125, 170, 20, new LiteralText("Twitch Settings"), button -> client.setScreen(new TwitchConfigurationScreen(this)));
+        ButtonWidget showItemWidget = new ButtonWidget(
+                this.width / 2 - 160,
+                125,
+                150,
+                20,
+                new LiteralText("Show Items: " + (settings.showItems ? "On" : "Off")),
+                button -> {
+                    settings.showItems = !settings.showItems;
+                    button.setMessage(new LiteralText("Show Items: " + (settings.showItems ? "On" : "Off")));
+                    changes = true;
+                }
+        );
+        this.addDrawableChild(showItemWidget);
+
+        ButtonWidget integrationSettings = new ButtonWidget(this.width / 2 - 85, 150, 170, 20, new LiteralText("Twitch Settings"), button -> client.setScreen(new TwitchConfigurationScreen(this)));
         if (MinecraftClient.getInstance().getGame().getCurrentSession() != null) {
             integrationSettings.active = false;
         }

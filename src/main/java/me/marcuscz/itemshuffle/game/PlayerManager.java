@@ -1,13 +1,16 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
+import net.minecraft.item.Item;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PlayerManager {
 
@@ -103,8 +106,11 @@ public class PlayerManager {
         players.values().forEach(ItemShufflePlayer::askClientForWinner);
     }
 
-    public void createNewVotes() {
-        players.values().forEach(ItemShufflePlayer::createNewVoting);
+    public void createNewVotes(ItemManager itemManager) {
+        players.values().forEach(player -> {
+            List<Item> items = itemManager.getVotingItems(4);
+            player.createNewVoting(items);
+        });
     }
 
     public void pauseVotingClients() {
@@ -119,5 +125,11 @@ public class PlayerManager {
         players.values().forEach(ItemShufflePlayer::stopVotingClient);
     }
 
+    public void showItems() {
+        players.values().forEach(ItemShufflePlayer::showItem);
+    }
 
+    public void hideItems() {
+        players.values().forEach(ItemShufflePlayer::hideItem);
+    }
 }
