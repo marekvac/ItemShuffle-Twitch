@@ -184,4 +184,8 @@ public class ItemShuffle implements ModInitializer {
             logger.warn("Could not save entropy settings: " + e.getLocalizedMessage());
         }
     }
+
+    public static File getPhasesFile() {
+        return new File("./config/itemshuffle/phases.json");
+    }
 }

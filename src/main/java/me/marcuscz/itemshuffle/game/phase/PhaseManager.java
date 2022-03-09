@@ -27,7 +27,7 @@ public class PhaseManager {
         phases = new ArrayList<>();
         availableItems = new ArrayList<>();
 
-        File f = new File("./config/itemshuffle/phases.json");
+        File f = ItemShuffle.getPhasesFile();
         if (!f.exists()) {
             Optional<ModContainer> container = FabricLoader.getInstance().getModContainer("itemshuffle-twitch");
             if (container.isEmpty()) {
@@ -46,7 +46,7 @@ public class PhaseManager {
         }
 
         JSONParser jsonParser = new JSONParser();
-        FileReader reader = new FileReader("./config/itemshuffle/phases.json");
+        FileReader reader = new FileReader(f);
         Object obj = jsonParser.parse(reader);
         JSONArray phasesArray = (JSONArray) obj;
         phasesArray.forEach(ph -> this.parsePhase((JSONObject) ph));
