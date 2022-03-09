@@ -68,6 +68,7 @@ public class GameManager {
         if (active) {
             active = false;
             playerManager.hideTimers();
+            playerManager.hideItems();
             if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
                 playerManager.stopVotingClients();
             }
@@ -84,6 +85,7 @@ public class GameManager {
         }
         paused = true;
         playerManager.hideTimers();
+        playerManager.hideItems();
         ItemShuffle.getInstance().broadcast(new LiteralText("§6Game has been paused! ").append(new LiteralText("§2§nResume").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle resume")))));
         return true;
     }
