@@ -23,6 +23,7 @@ public class GameManager {
     private boolean timesUp;
     private PlayerManager playerManager;
     private ItemManager itemManager;
+    private boolean disclaimer;
 
     public GameManager() {
         instance = this;
@@ -61,6 +62,10 @@ public class GameManager {
             playerManager.giveFoods();
         }
         active = true;
+        if (!disclaimer) {
+            ItemShuffle.getInstance().broadcast("§7§oItemShuffle Twitch by MarcusCZ");
+            disclaimer = true;
+        }
         return true;
     }
 
