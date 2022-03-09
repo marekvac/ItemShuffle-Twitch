@@ -83,7 +83,7 @@ public class TwitchClient extends ListenerAdapter {
     @Override
     public void onJoin(JoinEvent event) {
         long currentTime = System.currentTimeMillis();
-        if(currentTime-lastJoinMessage>30000){
+        if(currentTime-lastJoinMessage>60000){
             ItemShuffleClient.sendPlayerMessage("§2Connected to the Twitch Chat: §a" + ItemShuffleClient.getInstance().getTwitchSettings().channel);
             sendMessage("/me [ItemShuffle] Connected to the game to user: " + MinecraftClient.getInstance().getName());
             lastJoinMessage=currentTime;
