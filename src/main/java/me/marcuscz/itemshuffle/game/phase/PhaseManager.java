@@ -12,6 +12,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,15 +34,8 @@ public class PhaseManager {
             if (container.isEmpty()) {
                 throw new FileNotFoundException("failed to get mod container");
             }
-            File defaultConfig = new File(String.valueOf(container.get().getPath("phases.json")));
-            InputStream is = new FileInputStream(defaultConfig);
             OutputStream os = new FileOutputStream(f);
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = is.read(buffer)) > 0) {
-                os.write(buffer, 0, length);
-            }
-            is.close();
+            Files.copy(container.get().getPath("phases.json"), os);
             os.close();
         }
 
