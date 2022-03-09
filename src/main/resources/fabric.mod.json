@@ -9,7 +9,7 @@
   ],
   "contact": {},
   "license": "GPL",
-  "icon": "assets/ItemShuffle-Twitch/icon.png",
+  "icon": "icon.png",
   "environment": "*",
   "entrypoints": {
     "client": [
