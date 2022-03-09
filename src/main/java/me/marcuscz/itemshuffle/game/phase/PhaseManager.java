@@ -9,6 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,11 +27,18 @@ public class PhaseManager {
         phases = new ArrayList<>();
         availableItems = new ArrayList<>();
 
+        File f = new File("./config/itemshuffle/phases.json");
+        if (!f.exists()) {
+            DefaultItemBuilder builder = new DefaultItemBuilder();
+            builder.saveJson();
+        }
+
         JSONParser jsonParser = new JSONParser();
         FileReader reader = new FileReader("./config/itemshuffle/phases.json");
         Object obj = jsonParser.parse(reader);
         JSONArray phasesArray = (JSONArray) obj;
         phasesArray.forEach(ph -> this.parsePhase((JSONObject) ph));
+
 
         currentPhase = 0;
         availableItems.addAll(phases.get(currentPhase).getItems());
