@@ -13,6 +13,7 @@ public class GameSettings {
     public boolean pauseOnFail = true;
     public boolean giveFood = true;
     public boolean showItems = true;
+    public boolean debug = false;
 
     public GameSettings() {
 
@@ -27,6 +28,7 @@ public class GameSettings {
         pauseOnFail = buf.readBoolean();
         giveFood = buf.readBoolean();
         showItems = buf.readBoolean();
+        debug = buf.readBoolean();
     }
 
     @Override
@@ -40,6 +42,7 @@ public class GameSettings {
                 ", pauseOnFail=" + pauseOnFail +
                 ", giveFood=" + giveFood +
                 ", showItems=" + showItems +
+                ", debug=" + debug +
                 '}';
     }
 
@@ -57,6 +60,7 @@ public class GameSettings {
         buf.writeBoolean(pauseOnFail);
         buf.writeBoolean(giveFood);
         buf.writeBoolean(showItems);
+        buf.writeBoolean(debug);
         return buf;
     }
 }

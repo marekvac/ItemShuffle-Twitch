@@ -20,7 +20,9 @@ public class ItemManager {
 
     public void nextRound(double skipFactor) {
         phaseManager.increaseRounds(skipFactor);
-        phaseManager.printItems();
+        if (ItemShuffle.getInstance().getSettings().debug) {
+            phaseManager.printItems();
+        }
     }
 
     public Item getRandomItem() {
