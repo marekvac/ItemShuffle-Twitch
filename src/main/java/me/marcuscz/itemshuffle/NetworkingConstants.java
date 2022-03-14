@@ -18,4 +18,5 @@ public class NetworkingConstants {
     public static final Identifier GAME_STOP = new Identifier("itemshuffle", "game_stopped");
     public static final Identifier SHOW_ITEM = new Identifier("itemshuffle", "show_item");
     public static final Identifier HIDE_ITEM = new Identifier("itemshuffle", "hide_item");
+    public static final Identifier COMPLETE_ITEM = new Identifier("itemshuffle", "complete_item");
 }

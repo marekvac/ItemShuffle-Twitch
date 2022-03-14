@@ -50,6 +50,7 @@ public class ItemShuffleClient implements ClientModInitializer {
             ItemStack itemStack = buf.readItemStack();
             lastItem = itemStack.getItem();
             hudRender.setItem(lastItem);
+            hudRender.setItemCompleted(false);
             String key = lastItem.getTranslationKey();
             String lang = TranslationStorage.getInstance().get(key);
             if (client.player != null) {
@@ -68,6 +69,7 @@ public class ItemShuffleClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(SHOW_ITEM, (client, handler, buf, responseSender) -> hudRender.showItem(true));
         ClientPlayNetworking.registerGlobalReceiver(HIDE_ITEM, (client, handler, buf, responseSender) -> hudRender.showItem(false));
+        ClientPlayNetworking.registerGlobalReceiver(COMPLETE_ITEM, (client, handler, buf, responseSender) -> hudRender.setItemCompleted(true));
 
         ClientPlayNetworking.registerGlobalReceiver(SETTING_SYNC, (client, handler, buf, responseSender) -> {
             ItemShuffle.getInstance().setSettings(new GameSettings(buf));

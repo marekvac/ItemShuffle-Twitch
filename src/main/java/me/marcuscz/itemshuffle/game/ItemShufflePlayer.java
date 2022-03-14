@@ -63,6 +63,7 @@ public class ItemShufflePlayer {
                 player.getInventory().remove(itemStack -> itemStack.getItem() == item, 1, player.getInventory());
             }
             ItemShuffle.getInstance().broadcast("§aPlayer §a" + name + "§a has found their item!");
+            sendCompletedItem();
         }
     }
 
@@ -147,6 +148,10 @@ public class ItemShufflePlayer {
 
     public static void hideItemPlayer(ServerPlayerEntity player) {
         ServerPlayNetworking.send(player, HIDE_ITEM, PacketByteBufs.empty());
+    }
+
+    public void sendCompletedItem() {
+        ServerPlayNetworking.send(player, COMPLETE_ITEM, PacketByteBufs.empty());
     }
 
     // TWITCH CLIENT

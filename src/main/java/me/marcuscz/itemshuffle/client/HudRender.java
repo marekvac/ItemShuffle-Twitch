@@ -22,6 +22,7 @@ public class HudRender {
     private int currentTime;
     private int color;
     private Item item;
+    private boolean isItemCompleted;
     private final MinecraftClient minecraftClient = MinecraftClient.getInstance();
     private boolean showVotes = false;
 
@@ -72,7 +73,12 @@ public class HudRender {
             return;
         }
         String name = TranslationStorage.getInstance().get(item.getTranslationKey());
-        Text text = new LiteralText("§7Your item: §f§l" + name);
+        Text text;
+        if (isItemCompleted) {
+            text = new LiteralText("§7Your item: §a§l" + name + " §r§2✔");
+        } else {
+            text = new LiteralText("§7Your item: §f§l" + name);
+        }
         DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, text, 10, 106, MathHelper.packRgb(255,255,255));
     }
 
@@ -108,6 +114,10 @@ public class HudRender {
 
     public void setItem(Item item) {
         this.item = item;
+    }
+
+    public void setItemCompleted(boolean itemCompleted) {
+        isItemCompleted = itemCompleted;
     }
 
     public void tick(MinecraftClient minecraftClient) {
