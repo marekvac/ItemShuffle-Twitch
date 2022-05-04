@@ -53,6 +53,16 @@ public class PlayerManager {
         return allCompleted.get();
     }
 
+    public boolean allFailed() {
+        AtomicBoolean allFailed = new AtomicBoolean(true);
+        players.values().forEach(player -> {
+            if (player.isCompleted()) {
+                allFailed.set(false);
+            }
+        });
+        return allFailed.get();
+    }
+
     public void sendItems() {
         players.values().forEach(ItemShufflePlayer::sendItem);
     }

@@ -138,17 +138,25 @@ public class GameManager {
     public void endRound(boolean isSkip) {
         playerManager.hideTimers();
         playerManager.hideItems();
-        if (!playerManager.allCompleted()) {
+
+        if (playerManager.allFailed()) {
+            ItemShuffle.getInstance().broadcast("§4Everyone failed their item!");
+            pauseOrContinue(isSkip);
+        } else if (!playerManager.allCompleted()) {
             showScore();
-            pausedDueFail = true;
-            if (isSkip || !ItemShuffle.getInstance().getSettings().pauseOnFail) {
-                nextRound();
-            } else {
-                pause();
-            }
+            pauseOrContinue(isSkip);
         } else {
             ItemShuffle.getInstance().broadcast("§aEveryone found their item!");
             nextRound();
+        }
+    }
+
+    private void pauseOrContinue(boolean isSkip) {
+        pausedDueFail = true;
+        if (isSkip || !ItemShuffle.getInstance().getSettings().pauseOnFail) {
+            nextRound();
+        } else {
+            pause();
         }
     }
 
