@@ -29,6 +29,11 @@ public class PhaseManager {
         availableItems = new ArrayList<>();
 
         File f = ItemShuffle.getPhasesFile();
+
+        if (!f.getParentFile().exists()) {
+            f.getParentFile().mkdir();
+        }
+
         if (!f.exists()) {
             Optional<ModContainer> container = FabricLoader.getInstance().getModContainer("itemshuffle-twitch");
             if (container.isEmpty()) {
