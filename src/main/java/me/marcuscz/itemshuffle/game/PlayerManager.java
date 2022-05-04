@@ -43,7 +43,7 @@ public class PlayerManager {
         return players.containsKey(uuid);
     }
 
-    public boolean someoneFailed() {
+    public boolean allCompleted() {
         AtomicBoolean allCompleted = new AtomicBoolean(true);
         players.values().forEach(player -> {
             if (player.failed()) {

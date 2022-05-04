@@ -138,7 +138,7 @@ public class GameManager {
     public void endRound(boolean isSkip) {
         playerManager.hideTimers();
         playerManager.hideItems();
-        if (!playerManager.someoneFailed()) {
+        if (!playerManager.allCompleted()) {
             showScore();
             pausedDueFail = true;
             if (isSkip || !ItemShuffle.getInstance().getSettings().pauseOnFail) {
