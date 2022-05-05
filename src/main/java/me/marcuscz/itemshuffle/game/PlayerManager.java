@@ -1,8 +1,11 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
+import net.minecraft.command.EntitySelector;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.HashMap;
@@ -16,19 +19,68 @@ public class PlayerManager {
 
     private final MinecraftServer server;
     private final Map<UUID, ItemShufflePlayer> players;
+    private final Map<String, ItemShuffleTeam> teams;
 
     public PlayerManager() {
         this.players = new HashMap<>();
         server = ItemShuffle.getInstance().getServer();
+        this.teams = new HashMap<>();
+    }
+
+    public static boolean teamMode() {
+        return ItemShuffle.getInstance().getSettings().gameType == GameType.TEAM;
     }
 
     public void refreshPlayers() {
-        server.getPlayerManager().getPlayerList().forEach(player -> {
-            UUID uuid = player.getUuid();
-            if (!players.containsKey(uuid)) {
-                players.put(uuid, new ItemShufflePlayer(player));
-            }
+        if (teamMode()) {
+            players.clear();
+            teams.values().forEach(t -> players.putAll(t.getPlayers()));
+        } else {
+            server.getPlayerManager().getPlayerList().forEach(player -> {
+                UUID uuid = player.getUuid();
+                if (!players.containsKey(uuid)) {
+                    players.put(uuid, new ItemShufflePlayer(player));
+                }
+            });
+        }
+    }
+
+    public Map<String, ItemShuffleTeam> getTeams() {
+        return teams;
+    }
+
+    public void createTeam(String name) throws Exception {
+        if (teams.containsKey(name)) throw new Exception("Team name already used!");
+        ItemShuffleTeam team = new ItemShuffleTeam(name);
+        teams.put(name, team);
+    }
+
+    public void addPlayerToTeam(String teamName, ServerPlayerEntity player) throws Exception {
+        if (!teams.containsKey(teamName)) throw new Exception("Invalid team!");
+        ItemShuffleTeam team = teams.get(teamName);
+
+        AtomicBoolean inTeam = new AtomicBoolean(false);
+        teams.forEach((s, t) -> {
+            if (t.hasPlayer(player.getUuid())) inTeam.set(true);
         });
+
+        if (inTeam.get()) throw new Exception("Player is already in some team!");
+
+        team.addPlayer(new ItemShufflePlayer(player));
+    }
+
+    public void removePlayerFromTeam(String teamName, ServerPlayerEntity player) throws Exception  {
+        if (!teams.containsKey(teamName)) throw new Exception("Invalid team!");
+        ItemShuffleTeam team = teams.get(teamName);
+
+        if (!team.hasPlayer(player.getUuid())) throw new Exception("Player is not in this team!");
+
+        team.removePlayer(player.getUuid());
+    }
+
+    public void removeTeam(String teamName) throws Exception {
+        if (!teams.containsKey(teamName)) throw new Exception("Invalid team!");
+        teams.remove(teamName);
     }
 
     public Map<UUID, ItemShufflePlayer> getPlayers() {
@@ -45,21 +97,39 @@ public class PlayerManager {
 
     public boolean allCompleted() {
         AtomicBoolean allCompleted = new AtomicBoolean(true);
-        players.values().forEach(player -> {
-            if (player.failed()) {
-                allCompleted.set(false);
-            }
-        });
+
+        if (teamMode()) {
+            teams.values().forEach(t -> {
+                if (t.failed()) {
+                    allCompleted.set(false);
+                }
+            });
+        } else {
+            players.values().forEach(player -> {
+                if (player.failed()) {
+                    allCompleted.set(false);
+                }
+            });
+        }
         return allCompleted.get();
     }
 
     public boolean allFailed() {
         AtomicBoolean allFailed = new AtomicBoolean(true);
-        players.values().forEach(player -> {
-            if (player.isCompleted()) {
-                allFailed.set(false);
-            }
-        });
+
+        if (teamMode()) {
+            teams.values().forEach(t -> {
+                if (t.isCompleted()) {
+                    allFailed.set(false);
+                }
+            });
+        } else {
+            players.values().forEach(player -> {
+                if (player.isCompleted()) {
+                    allFailed.set(false);
+                }
+            });
+        }
         return allFailed.get();
     }
 
@@ -68,20 +138,37 @@ public class PlayerManager {
     }
 
     public void broadcastScore(boolean onlyFailed) {
-        players.values().forEach(player -> player.broadcastScore(onlyFailed));
+        if (teamMode()) {
+            teams.values().forEach(t -> t.broadcastScore(onlyFailed));
+        } else {
+            players.values().forEach(player -> player.broadcastScore(onlyFailed));
+        }
     }
 
     public void checkAllPlayersItem() {
-        players.values().forEach(ItemShufflePlayer::checkItem);
+        if (teamMode()) {
+            teams.values().forEach(ItemShuffleTeam::checkItem);
+        } else {
+            players.values().forEach(ItemShufflePlayer::checkItem);
+        }
     }
 
     public boolean isEveryoneCompleted() {
         AtomicBoolean allCompleted = new AtomicBoolean(true);
-        players.values().forEach(player -> {
-            if (!player.isCompleted()) {
-                allCompleted.set(false);
-            }
-        });
+
+        if (teamMode()) {
+            teams.values().forEach(t -> {
+                if (!t.isCompleted()) {
+                    allCompleted.set(false);
+                }
+            });
+        } else {
+            players.values().forEach(player -> {
+                if (!player.isCompleted()) {
+                    allCompleted.set(false);
+                }
+            });
+        }
         return allCompleted.get();
     }
 

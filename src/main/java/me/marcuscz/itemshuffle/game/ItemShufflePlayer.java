@@ -52,6 +52,10 @@ public class ItemShufflePlayer {
         return completed;
     }
 
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
     public UUID getUuid() {
         return uuid;
     }
@@ -202,5 +206,10 @@ public class ItemShufflePlayer {
             return;
         }
         ServerPlayNetworking.send(player, GAME_STOP, PacketByteBufs.empty());
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

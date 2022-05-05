@@ -55,6 +55,10 @@ public class ItemManager {
         }
     }
 
+    public void getRandomItemsForTeams(Collection<ItemShuffleTeam> teams) {
+        teams.forEach(t -> t.setItem(getRandomItem()));
+    }
+
     public void setQueueItem(UUID uuid, Item item) {
         votingQueueItems.put(uuid, item);
     }

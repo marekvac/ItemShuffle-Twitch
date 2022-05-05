@@ -114,7 +114,13 @@ public class GameManager {
         time = ItemShuffle.getInstance().getSettings().time;
         currentTime = time;
         itemManager.nextRound(pausedDueFail ? 0.5 : 1);
-        itemManager.getRandomItemsForPlayers(playerManager.getPlayers().values());
+
+        if (PlayerManager.teamMode()) {
+            itemManager.getRandomItemsForTeams(playerManager.getTeams().values());
+        } else {
+            itemManager.getRandomItemsForPlayers(playerManager.getPlayers().values());
+        }
+
         itemMsgSent = false;
         paused = pausedDueFail = false;
         timesUp = false;
