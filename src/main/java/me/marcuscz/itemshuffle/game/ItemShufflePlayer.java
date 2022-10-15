@@ -8,9 +8,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.LiteralText;
 import net.minecraft.util.registry.Registry;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
 
 import static me.marcuscz.itemshuffle.NetworkingConstants.*;
@@ -24,6 +27,8 @@ public class ItemShufflePlayer {
     private boolean completed;
     private int fails;
     private boolean twitchEnabled;
+    private Queue<Item> itemQueue;
+    private int runPoints;
 
     public ItemShufflePlayer(ServerPlayerEntity player) {
         this.player = player;
@@ -38,6 +43,13 @@ public class ItemShufflePlayer {
     public void setItem(Item item) {
         this.item = item;
         completed = false;
+    }
+
+    public void setItemQueue(Queue<Item> itemQueue) {
+        this.itemQueue = new LinkedList<>(itemQueue);
+        this.item = this.itemQueue.poll();
+        completed = false;
+        runPoints = 0;
     }
 
     public void setPlayer(ServerPlayerEntity player) {
@@ -61,14 +73,34 @@ public class ItemShufflePlayer {
     }
 
     public void checkItem() {
-        if (!completed && player.getInventory().contains(new ItemStack(item))) {
-            completed = true;
+        if (completed) return;
+        if (player.getInventory().contains(new ItemStack(item))) {
             if (ItemShuffle.getInstance().getSettings().removeItems) {
                 player.getInventory().remove(itemStack -> itemStack.getItem() == item, 1, player.getInventory());
             }
+
+            if (ItemShuffle.getInstance().getSettings().gameType == GameType.RUN) {
+                item = itemQueue.poll();
+                sendItem();
+                runPoints++;
+                player.sendMessage(new LiteralText("§fRun Points: §b" + runPoints), false);
+            } else {
+                completed = true;
+                sendCompletedItem();
+            }
+
             ItemShuffle.getInstance().broadcast("§aPlayer §a" + name + "§a has found their item!");
-            sendCompletedItem();
         }
+    }
+
+    public void skipItem() {
+        if (ItemShuffle.getInstance().getSettings().gameType != GameType.RUN) return;
+        item = itemQueue.poll();
+        sendItem();
+        runPoints--;
+        if (runPoints < 0) runPoints = 0;
+        player.sendMessage(new LiteralText("§fRun Points: §b" + runPoints), false);
+        ItemShuffle.getInstance().broadcast("§7Player §f" + name + "§7 skipped their item");
     }
 
     public boolean failed() {
@@ -96,6 +128,11 @@ public class ItemShufflePlayer {
             return;
         }
         String score = (fails == 0 ? "§2 " : "§c ") + fails + " fails";
+        ItemShuffle.getInstance().broadcast("§f" + name + "§7: " + score);
+    }
+
+    public void broadcastRunScore() {
+        String score = (runPoints == 0 ? "§c " : "§b ") + runPoints + " points";
         ItemShuffle.getInstance().broadcast("§f" + name + "§7: " + score);
     }
 

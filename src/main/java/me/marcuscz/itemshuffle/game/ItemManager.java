@@ -13,9 +13,12 @@ public class ItemManager {
     private final Map<UUID, Item> votingQueueItems;
     private final PhaseManager phaseManager;
 
+    private final List<Item> runQueue;
+
     public ItemManager() throws IOException, ParseException {
         votingQueueItems = new HashMap<>();
         phaseManager = new PhaseManager();
+        runQueue = new ArrayList<>();
     }
 
     public void nextRound(double skipFactor) {
@@ -61,5 +64,29 @@ public class ItemManager {
 
     public void setQueueItem(UUID uuid, Item item) {
         votingQueueItems.put(uuid, item);
+    }
+
+    public Queue<Item> createRunQueue(int size) {
+        Queue<Item> items = new LinkedList<>();
+        runQueue.clear();
+        for (int i = 0; i < size; i++) {
+            boolean found = false;
+            int t = 0;
+            while (!found) {
+                Item item = phaseManager.getItem();
+                if (!items.contains(item) || t > 30) {
+                    items.add(item);
+                    runQueue.add(item);
+                    found = true;
+                }
+                t++;
+            }
+//            phaseManager.increaseRounds(0.5);
+        }
+        return items;
+    }
+
+    public List<Item> getRunItemList() {
+        return runQueue;
     }
 }

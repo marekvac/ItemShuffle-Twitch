@@ -3,7 +3,9 @@ package me.marcuscz.itemshuffle;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.marcuscz.itemshuffle.game.GameManager;
+import me.marcuscz.itemshuffle.game.ItemManager;
 import me.marcuscz.itemshuffle.game.ItemShuffleTeam;
 import me.marcuscz.itemshuffle.game.PlayerManager;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
@@ -27,34 +29,38 @@ public class ItemShuffleCommandManager {
     }
 
     public void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(literal("itemshuffle")
-                .then(literal("start").executes(this::start))
-                .then(literal("stop").executes(this::stop))
-                .then(literal("pause").executes(this::pause))
-                .then(literal("resume").executes(this::resume))
-                .then(literal("skip").executes(this::skip))
-                .then(literal("teams")
-                        .then(literal("list").executes(this::listTeams))
-                        .then(literal("create")
-                                .then(argument("name", StringArgumentType.string())
-                                        .executes(this::createTeam))
-                        )
-                        .then(literal("addplayer")
-                                .then(argument("name", StringArgumentType.string())
-                                        .then(argument("player", EntityArgumentType.player())
-                                                .executes(this::addPlayerToTeam)))
-                        )
-                        .then(literal("removeplayer")
-                                .then(argument("name", StringArgumentType.string())
-                                        .then(argument("player", EntityArgumentType.player())
-                                                .executes(this::removePlayerFromTeam)))
-                        )
-                        .then(literal("remove")
-                                .then(argument("name", StringArgumentType.string())
-                                .executes(this::removeTeam))
-                        )
-                )
-        ));
+        CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> {
+            dispatcher.register(literal("itemshuffle")
+                    .then(literal("start").executes(this::start))
+                    .then(literal("stop").executes(this::stop))
+                    .then(literal("pause").executes(this::pause))
+                    .then(literal("resume").executes(this::resume))
+                    .then(literal("skip").executes(this::skip))
+                    .then(literal("showrunitems").executes(this::printItemQueue))
+                    .then(literal("teams")
+                            .then(literal("list").executes(this::listTeams))
+                            .then(literal("create")
+                                    .then(argument("name", StringArgumentType.string())
+                                            .executes(this::createTeam))
+                            )
+                            .then(literal("addplayer")
+                                    .then(argument("name", StringArgumentType.string())
+                                            .then(argument("player", EntityArgumentType.player())
+                                                    .executes(this::addPlayerToTeam)))
+                            )
+                            .then(literal("removeplayer")
+                                    .then(argument("name", StringArgumentType.string())
+                                            .then(argument("player", EntityArgumentType.player())
+                                                    .executes(this::removePlayerFromTeam)))
+                            )
+                            .then(literal("remove")
+                                    .then(argument("name", StringArgumentType.string())
+                                            .executes(this::removeTeam))
+                            )
+                    )
+            );
+            dispatcher.register(literal("skip").executes(this::skipPlayerItem));
+        });
         ItemShuffle.getLogger().info("Registered commands!");
     }
 
@@ -152,6 +158,27 @@ public class ItemShuffleCommandManager {
         } catch (Exception e) {
             ctx.getSource().sendError(new LiteralText("§4" + e.getMessage()));
         }
+        return 1;
+    }
+
+    private int skipPlayerItem(CommandContext<ServerCommandSource> ctx) {
+        PlayerManager manager = GameManager.getInstance().getPlayerManager();
+        try {
+            ServerPlayerEntity player = ctx.getSource().getPlayer();
+            if (manager.isGamePlayer(player.getUuid())) {
+                manager.getPlayer(player.getUuid()).skipItem();
+            } else {
+                throw new Exception("");
+            }
+        } catch (Exception e) {
+            ctx.getSource().sendError(new LiteralText("§cYou are not game player!"));
+        }
+        return 1;
+    }
+
+    private int printItemQueue(CommandContext<ServerCommandSource> ctx) {
+        ItemManager itemManager = GameManager.getInstance().getItemManager();
+        ctx.getSource().sendFeedback(new LiteralText(itemManager.getRunItemList().toString()), false);
         return 1;
     }
 

@@ -12,6 +12,7 @@ import java.io.IOException;
 
 public class GameManager {
 
+    public static final int RUN_SIZE = 32;
     private static GameManager instance;
     private static boolean active;
     private static boolean paused;
@@ -113,10 +114,15 @@ public class GameManager {
         playerManager.refreshPlayers();
         time = ItemShuffle.getInstance().getSettings().time;
         currentTime = time;
-        itemManager.nextRound(pausedDueFail ? 0.5 : 1);
+
+        if (ItemShuffle.getInstance().getSettings().gameType != GameType.RUN) {
+            itemManager.nextRound(pausedDueFail ? 0.5 : 1);
+        }
 
         if (PlayerManager.teamMode()) {
             itemManager.getRandomItemsForTeams(playerManager.getTeams().values());
+        } else if (ItemShuffle.getInstance().getSettings().gameType == GameType.RUN) {
+            playerManager.setPlayerItemQueues(itemManager.createRunQueue(RUN_SIZE));
         } else {
             itemManager.getRandomItemsForPlayers(playerManager.getPlayers().values());
         }
@@ -134,7 +140,7 @@ public class GameManager {
     }
 
     public boolean skip() {
-        if (!active) {
+        if (!active || ItemShuffle.getInstance().getSettings().gameType == GameType.RUN) {
             return false;
         }
         endRound(true);
@@ -169,6 +175,11 @@ public class GameManager {
     public void showScore() {
         ItemShuffle.getInstance().broadcast("§7Score:");
         playerManager.broadcastScore(true);
+    }
+
+    public void showRunScore() {
+        ItemShuffle.getInstance().broadcast("§7RUN Score:");
+        playerManager.broadcastRunScore();
     }
 
     public static boolean isActive() {
@@ -214,7 +225,12 @@ public class GameManager {
             // Check players items
             playerManager.checkAllPlayersItem();
             if (playerManager.isEveryoneCompleted()) {
-                endRound(false);
+                if (ItemShuffle.getInstance().getSettings().gameType == GameType.RUN) {
+                    showRunScore();
+                    stop();
+                } else {
+                    endRound(false);
+                }
             }
 
             // <= 10 seconds remain
@@ -224,7 +240,12 @@ public class GameManager {
                     playerManager.updateTimers(MathHelper.packRgb(170, 50, 50));
                 }
                 if (currentTime == 0) {
-                    endRound(false);
+                    if (ItemShuffle.getInstance().getSettings().gameType == GameType.RUN) {
+                        showRunScore();
+                        stop();
+                    } else {
+                        endRound(false);
+                    }
                     return;
                 }
 

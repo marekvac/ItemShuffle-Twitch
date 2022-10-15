@@ -1,7 +1,7 @@
 package me.marcuscz.itemshuffle.game;
 
 public enum GameType {
-    CLASSIC, ALL_SAME, TWITCH, TEAM;
+    CLASSIC, ALL_SAME, TWITCH, TEAM, RUN;
 
     public static int getIndex(GameType gameType) {
         int i = 0;

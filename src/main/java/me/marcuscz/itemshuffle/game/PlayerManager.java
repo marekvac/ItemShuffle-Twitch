@@ -8,10 +8,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.MathHelper;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -83,6 +80,10 @@ public class PlayerManager {
         teams.remove(teamName);
     }
 
+    public void setPlayerItemQueues(Queue<Item> items) {
+        players.values().forEach(p -> p.setItemQueue(items));
+    }
+
     public Map<UUID, ItemShufflePlayer> getPlayers() {
         return players;
     }
@@ -143,6 +144,10 @@ public class PlayerManager {
         } else {
             players.values().forEach(player -> player.broadcastScore(onlyFailed));
         }
+    }
+
+    public void broadcastRunScore() {
+        players.values().forEach(ItemShufflePlayer::broadcastRunScore);
     }
 
     public void checkAllPlayersItem() {
