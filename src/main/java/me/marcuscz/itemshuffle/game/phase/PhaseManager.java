@@ -4,8 +4,10 @@ import me.marcuscz.itemshuffle.ItemShuffle;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.item.Item;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -38,30 +40,59 @@ public class PhaseManager {
             f.getParentFile().mkdir();
         }
 
-        if (!f.exists()) {
-            Optional<ModContainer> container = FabricLoader.getInstance().getModContainer("itemshuffle-twitch");
-            if (container.isEmpty()) {
-                throw new FileNotFoundException("failed to get mod container");
-            }
-            OutputStream os = new FileOutputStream(f);
-            Files.copy(container.get().getPath("phases.json"), os);
-            os.close();
+        Optional<ModContainer> container = FabricLoader.getInstance().getModContainer("itemshuffle-twitch");
+        if (container.isEmpty()) {
+            throw new FileNotFoundException("failed to get mod container");
         }
+
+        if (!f.exists()) {
+            copyModFile(container);
+        }
+
+        File modFile = container.get().getPath("phases-" + ItemShuffle.MC_VERSION + ".json").toFile();
 
         JSONParser jsonParser = new JSONParser();
         FileReader reader = new FileReader(f);
-        Object obj = jsonParser.parse(reader);
-        JSONArray phasesArray = (JSONArray) obj;
-        phasesArray.forEach(ph -> this.parsePhase((JSONObject) ph));
+        FileReader readerMod = new FileReader(modFile);
 
+        JSONObject obj = (JSONObject) jsonParser.parse(reader);
+        if (!obj.containsKey("version")) {
+            reader.close();
+            copyModFile(container);
+            reader = new FileReader(f);
+            obj = (JSONObject) jsonParser.parse(reader);
+            ItemShuffle.getLogger().info("Updated phases.json file!");
+        } else {
+            ItemShuffle.getLogger().info("File is in new format");
+            JSONObject objMod = (JSONObject) jsonParser.parse(readerMod);
+            JSONObject version = (JSONObject) obj.get("version");
+            JSONObject modVersion = (JSONObject) objMod.get("version");
+            if (!((boolean) version.get("custom")) && ((double) version.get("file")) < ((double) modVersion.get("file"))) {
+                reader.close();
+                copyModFile(container);
+                reader = new FileReader(f);
+                obj = (JSONObject) jsonParser.parse(reader);
+                ItemShuffle.getLogger().info("Updated phases.json file!");
+            }
+        }
+
+        JSONArray phasesArray = (JSONArray) obj.get("phases");
+        phasesArray.forEach(ph -> this.parsePhase((JSONObject) ph));
 
         currentPhase = 0;
         availableItems.addAll(phases.get(currentPhase).getItems());
 
         ItemShuffle.getLogger().info("Phases initialized!");
-//        ItemShuffle.getLogger().info("Phases: " + phases);
 
         roundsLasted = 0;
+    }
+
+    private void copyModFile(Optional<ModContainer> container) throws IOException {
+
+        File f = ItemShuffle.getPhasesFile();
+        OutputStream os = new FileOutputStream(f);
+        Files.copy(container.get().getPath("phases-" + ItemShuffle.MC_VERSION + ".json"), os);
+        os.close();
     }
 
     private void parsePhase(JSONObject phase) throws ClassCastException {
