@@ -1,12 +1,18 @@
 package me.marcuscz.itemshuffle.client;
 
+import me.marcuscz.itemshuffle.ItemShuffle;
+import me.marcuscz.itemshuffle.TeamData;
 import me.marcuscz.itemshuffle.client.voting.VotingClient;
 import me.marcuscz.itemshuffle.client.voting.VotingItem;
+import me.marcuscz.itemshuffle.game.GameType;
+import me.marcuscz.itemshuffle.game.ItemGenType;
+import me.marcuscz.itemshuffle.game.ItemShuffleTeam;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.Item;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
@@ -25,11 +31,16 @@ public class HudRender {
     private boolean isItemCompleted;
     private final MinecraftClient minecraftClient = MinecraftClient.getInstance();
     private boolean showVotes = false;
+    private ArrayList<TeamData> teamData = new ArrayList<>();
+    private boolean showTeamData = false;
 
     public void renderTimer(MatrixStack matrixStack, float tickDelta) {
         renderVoting(matrixStack);
         if (showItem) {
             renderItem(matrixStack);
+        }
+        if (showTeamData) {
+            renderTeams(matrixStack);
         }
         if (!showTimer) {
             return;
@@ -66,6 +77,32 @@ public class HudRender {
             i++;
         }
 
+    }
+
+    private void renderTeams(MatrixStack matrixStack) {
+        if (ItemShuffle.getInstance().getSettings().teamShowType == TeamData.Show.NONE) return;
+
+        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, new LiteralText("Team Score: §7§o(Mode " + ItemShuffle.getInstance().getSettings().itemType.name() + ")"), 10, 20, MathHelper.packRgb(255, 255, 255));
+
+        for (int i = 0; i < teamData.size(); i++) {
+            DrawableHelper.fill(matrixStack, 10, 31 + (i * 18), 195 + 10 + 45, 35 + (i * 18) + 10, MathHelper.packRgb(155, 22, 217) + 150 << 24);
+            TeamData data;
+            try {
+                data = teamData.get(i);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                return;
+            }
+
+            String score = ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN ? "§b§l" + data.runScore : "§c§l" + data.fails;
+            String item = "";
+            if (ItemShuffle.getInstance().getSettings().teamShowType == TeamData.Show.FULL) {
+                String name = TranslationStorage.getInstance().get(data.item.getTranslationKey());
+                item = data.completed ? "§a " + name + " §r§2✔" : "§f " + name;
+            }
+
+            DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, new LiteralText("§" + data.color + data.name + "§r §7[" + data.players + "]§r: " + score + item), 15, 34 + (i * 18), MathHelper.packRgb(255, 255, 255));
+
+        }
     }
 
     private void renderItem(MatrixStack matrixStack) {
@@ -118,6 +155,23 @@ public class HudRender {
 
     public void setItemCompleted(boolean itemCompleted) {
         isItemCompleted = itemCompleted;
+    }
+
+    public void setTeamData(PacketByteBuf buf) {
+        int size = buf.readInt();
+        if (size == 0) {
+            showTeamData = false;
+            return;
+        }
+        teamData.clear();
+        for (int i = 0; i < size; i++) {
+            teamData.add(TeamData.fromPacket(buf));
+        }
+        showTeamData = true;
+    }
+
+    public void setShowTeamData(boolean showTeamData) {
+        this.showTeamData = showTeamData;
     }
 
     public void tick(MinecraftClient minecraftClient) {

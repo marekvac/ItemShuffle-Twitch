@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public class GameManager {
 
-    public static final int RUN_SIZE = 32;
+    public static final int RUN_SIZE = 64;
     private static GameManager instance;
     private static boolean active;
     private static boolean paused;
@@ -115,16 +115,15 @@ public class GameManager {
         time = ItemShuffle.getInstance().getSettings().time;
         currentTime = time;
 
-        if (ItemShuffle.getInstance().getSettings().gameType != GameType.RUN) {
+        if (ItemShuffle.getInstance().getSettings().itemType != ItemGenType.RUN) {
             itemManager.nextRound(pausedDueFail ? 0.5 : 1);
-        }
-
-        if (PlayerManager.teamMode()) {
-            itemManager.getRandomItemsForTeams(playerManager.getTeams().values());
-        } else if (ItemShuffle.getInstance().getSettings().gameType == GameType.RUN) {
-            playerManager.setPlayerItemQueues(itemManager.createRunQueue(RUN_SIZE));
+            if (PlayerManager.teamMode()) {
+                itemManager.getRandomItemsForTeams(playerManager.getTeams().values());
+            } else {
+                itemManager.getRandomItemsForPlayers(playerManager.getPlayers().values());
+            }
         } else {
-            itemManager.getRandomItemsForPlayers(playerManager.getPlayers().values());
+            playerManager.setItemQueues(itemManager.createRunQueue(RUN_SIZE));
         }
 
         itemMsgSent = false;
@@ -137,10 +136,13 @@ public class GameManager {
         if (ItemShuffle.getInstance().getSettings().showItems) {
             playerManager.showItems();
         }
+        if (ItemShuffle.getInstance().getSettings().gameType == GameType.TEAM) {
+            playerManager.refreshTeamData(true);
+        }
     }
 
     public boolean skip() {
-        if (!active || ItemShuffle.getInstance().getSettings().gameType == GameType.RUN) {
+        if (!active || ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
             return false;
         }
         endRound(true);
@@ -150,6 +152,7 @@ public class GameManager {
     public void endRound(boolean isSkip) {
         playerManager.hideTimers();
         playerManager.hideItems();
+        playerManager.refreshTeamData(false);
 
         if (playerManager.allFailed()) {
             ItemShuffle.getInstance().broadcast("§4Everyone failed their item!");
@@ -225,7 +228,7 @@ public class GameManager {
             // Check players items
             playerManager.checkAllPlayersItem();
             if (playerManager.isEveryoneCompleted()) {
-                if (ItemShuffle.getInstance().getSettings().gameType == GameType.RUN) {
+                if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
                     showRunScore();
                     stop();
                 } else {
@@ -240,7 +243,7 @@ public class GameManager {
                     playerManager.updateTimers(MathHelper.packRgb(170, 50, 50));
                 }
                 if (currentTime == 0) {
-                    if (ItemShuffle.getInstance().getSettings().gameType == GameType.RUN) {
+                    if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
                         showRunScore();
                         stop();
                     } else {

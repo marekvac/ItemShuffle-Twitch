@@ -70,6 +70,7 @@ public class ItemShuffleClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(SHOW_ITEM, (client, handler, buf, responseSender) -> hudRender.showItem(true));
         ClientPlayNetworking.registerGlobalReceiver(HIDE_ITEM, (client, handler, buf, responseSender) -> hudRender.showItem(false));
         ClientPlayNetworking.registerGlobalReceiver(COMPLETE_ITEM, (client, handler, buf, responseSender) -> hudRender.setItemCompleted(true));
+        ClientPlayNetworking.registerGlobalReceiver(TEAM_DATA, ((client, handler, buf, responseSender) -> hudRender.setTeamData(buf)));
 
         ClientPlayNetworking.registerGlobalReceiver(SETTING_SYNC, (client, handler, buf, responseSender) -> {
             ItemShuffle.getInstance().setSettings(new GameSettings(buf));
@@ -130,6 +131,7 @@ public class ItemShuffleClient implements ClientModInitializer {
                 votingEnabled = false;
                 votingClient.stop();
             }
+            hudRender.setShowTeamData(false);
         });
 
     }

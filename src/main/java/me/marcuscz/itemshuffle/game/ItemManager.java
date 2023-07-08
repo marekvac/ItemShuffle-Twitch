@@ -38,7 +38,7 @@ public class ItemManager {
 
     public void getRandomItemsForPlayers(Collection<ItemShufflePlayer> players) {
         Item item = null;
-        if (ItemShuffle.getInstance().getSettings().gameType == GameType.ALL_SAME) {
+        if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME) {
              item = getRandomItem();
         }
         for (ItemShufflePlayer player : players) {
@@ -49,7 +49,7 @@ public class ItemManager {
                     votingQueueItems.remove(player.getUuid());
                 } else {
                     // Else get random item
-                    if (ItemShuffle.getInstance().getSettings().gameType != GameType.ALL_SAME) {
+                    if (ItemShuffle.getInstance().getSettings().itemType != ItemGenType.ALL_SAME) {
                         item = getRandomItem();
                     }
                 }
@@ -59,7 +59,12 @@ public class ItemManager {
     }
 
     public void getRandomItemsForTeams(Collection<ItemShuffleTeam> teams) {
-        teams.forEach(t -> t.setItem(getRandomItem()));
+        if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME) {
+            Item item = getRandomItem();
+            teams.forEach(t -> t.setItem(item));
+        } else {
+            teams.forEach(t -> t.setItem(getRandomItem()));
+        }
     }
 
     public void setQueueItem(UUID uuid, Item item) {

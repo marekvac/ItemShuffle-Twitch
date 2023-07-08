@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import me.marcuscz.itemshuffle.game.GameManager;
 import me.marcuscz.itemshuffle.game.GameSettings;
 import me.marcuscz.itemshuffle.game.ItemShufflePlayer;
+import me.marcuscz.itemshuffle.game.PlayerManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -12,6 +13,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.util.FileSystemUtil;
+import net.minecraft.client.RunArgs;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.MessageType;
 import net.minecraft.server.MinecraftServer;
@@ -49,7 +51,7 @@ public class ItemShuffle implements ModInitializer {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server1) -> {
             ServerPlayNetworking.send(handler.getPlayer(), NetworkingConstants.SETTING_SYNC, settings.toPacket());
-            if (!GameManager.isActive()) {
+            if (!GameManager.isActive() || GameManager.isPaused()) {
                 ItemShufflePlayer.hideTimerPlayer(handler.getPlayer());
                 ItemShufflePlayer.hideItemPlayer(handler.getPlayer());
                 // If player has active voting, stop it
@@ -57,6 +59,9 @@ public class ItemShuffle implements ModInitializer {
                 return;
             }
             UUID uuid = handler.getPlayer().getUuid();
+            if (PlayerManager.teamMode() && GameManager.isActive() && !GameManager.isPaused()) {
+                gameManager.getPlayerManager().refreshTeamData(true);
+            }
             if (gameManager.getPlayerManager().isGamePlayer(uuid)) {
                 ItemShufflePlayer player = gameManager.getPlayerManager().getPlayer(uuid);
                 player.setPlayer(handler.getPlayer());

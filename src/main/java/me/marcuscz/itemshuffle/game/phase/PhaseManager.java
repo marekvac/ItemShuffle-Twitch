@@ -30,6 +30,10 @@ public class PhaseManager {
 
         File f = ItemShuffle.getPhasesFile();
 
+        if (!f.getParentFile().getParentFile().exists()) {
+            f.getParentFile().getParentFile().mkdir();
+        }
+
         if (!f.getParentFile().exists()) {
             f.getParentFile().mkdir();
         }

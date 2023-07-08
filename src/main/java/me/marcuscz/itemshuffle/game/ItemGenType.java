@@ -1,11 +1,12 @@
 package me.marcuscz.itemshuffle.game;
 
-public enum GameType {
-    TWITCH, TEAM, SOLO;
+public enum ItemGenType {
 
-    public static int getIndex(GameType gameType) {
+    RANDOM, ALL_SAME, RUN;
+
+    public static int getIndex(ItemGenType gameType) {
         int i = 0;
-        for (GameType gt : values()) {
+        for (ItemGenType gt : values()) {
             if (gt == gameType) {
                 break;
             }
@@ -13,4 +14,5 @@ public enum GameType {
         }
         return i;
     }
+
 }

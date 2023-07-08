@@ -1,10 +1,12 @@
 package me.marcuscz.itemshuffle.client.screens;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
+import me.marcuscz.itemshuffle.TeamData;
 import me.marcuscz.itemshuffle.client.ItemShuffleClient;
 import me.marcuscz.itemshuffle.client.screens.widgets.ItemShuffleSliderWidget;
 import me.marcuscz.itemshuffle.game.GameSettings;
 import me.marcuscz.itemshuffle.game.GameType;
+import me.marcuscz.itemshuffle.game.ItemGenType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ScreenTexts;
@@ -21,12 +23,14 @@ public class ItemShuffleConfigurationScreen extends Screen {
     private final Screen parent;
     private final GameSettings settings = ItemShuffle.getInstance().getSettings();
     private boolean changes;
-    private int gameTypeIndex;
+    private int gameTypeIndex, itemTypeIndex, teamDataIndex;
 
     public ItemShuffleConfigurationScreen(Screen parent) {
         super(new LiteralText("ItemShuffle Options"));
         this.parent = parent;
         gameTypeIndex = GameType.getIndex(settings.gameType);
+        itemTypeIndex = ItemGenType.getIndex(settings.itemType);
+        teamDataIndex = TeamData.Show.getIndex(settings.teamShowType);
     }
 
     protected void init() {
@@ -79,9 +83,27 @@ public class ItemShuffleConfigurationScreen extends Screen {
         );
         this.addDrawableChild(gameTypeWidget);
 
-        ButtonWidget showTimersWidget = new ButtonWidget(
+        ButtonWidget itemTypeWidget = new ButtonWidget(
                 this.width / 2 + 10,
                 75,
+                150,
+                20,
+                new LiteralText("Item Generator: " + settings.itemType.toString()),
+                button -> {
+                    itemTypeIndex++;
+                    if (itemTypeIndex >= ItemGenType.values().length) {
+                        itemTypeIndex = 0;
+                    }
+                    settings.itemType = ItemGenType.values()[itemTypeIndex];
+                    button.setMessage(new LiteralText("Item Generator: " + settings.itemType.toString()));
+                    changes = true;
+                }
+        );
+        this.addDrawableChild(itemTypeWidget);
+
+        ButtonWidget showTimersWidget = new ButtonWidget(
+                this.width / 2 - 160,
+                100,
                 150,
                 20,
                 new LiteralText("Show Timer: " + (settings.showTimers ? "On" : "Off")),
@@ -94,7 +116,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
         this.addDrawableChild(showTimersWidget);
 
         ButtonWidget pauseOnFailWidget = new ButtonWidget(
-                this.width / 2 - 160,
+                this.width / 2 + 10,
                 100,
                 150,
                 20,
@@ -108,8 +130,8 @@ public class ItemShuffleConfigurationScreen extends Screen {
         this.addDrawableChild(pauseOnFailWidget);
 
         ButtonWidget giveFoodWidget = new ButtonWidget(
-                this.width / 2 + 10,
-                100,
+                this.width / 2 - 160,
+                125,
                 150,
                 20,
                 new LiteralText("Give Food: " + (settings.giveFood ? "On" : "Off")),
@@ -122,7 +144,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
         this.addDrawableChild(giveFoodWidget);
 
         ButtonWidget showItemWidget = new ButtonWidget(
-                this.width / 2 - 160,
+                this.width / 2 + 10,
                 125,
                 150,
                 20,
@@ -135,7 +157,25 @@ public class ItemShuffleConfigurationScreen extends Screen {
         );
         this.addDrawableChild(showItemWidget);
 
-        ButtonWidget integrationSettings = new ButtonWidget(this.width / 2 - 85, 150, 170, 20, new LiteralText("Twitch Settings"), button -> client.setScreen(new TwitchConfigurationScreen(this)));
+        ButtonWidget teamDataShowWidget = new ButtonWidget(
+                this.width / 2 - 160,
+                150,
+                150,
+                20,
+                new LiteralText("Show Team Data: " + settings.teamShowType.toString()),
+                button -> {
+                    teamDataIndex++;
+                    if (teamDataIndex >= TeamData.Show.values().length) {
+                        teamDataIndex = 0;
+                    }
+                    settings.teamShowType = TeamData.Show.values()[teamDataIndex];
+                    button.setMessage(new LiteralText("Show Team Data: " + settings.teamShowType.toString()));
+                    changes = true;
+                }
+        );
+        this.addDrawableChild(teamDataShowWidget);
+
+        ButtonWidget integrationSettings = new ButtonWidget(this.width / 2 - 85, 175, 170, 20, new LiteralText("Twitch Settings"), button -> client.setScreen(new TwitchConfigurationScreen(this)));
         if (MinecraftClient.getInstance().getGame().getCurrentSession() != null) {
             integrationSettings.active = false;
         }

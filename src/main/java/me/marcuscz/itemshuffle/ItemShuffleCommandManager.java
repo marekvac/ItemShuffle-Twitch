@@ -1,5 +1,6 @@
 package me.marcuscz.itemshuffle;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -41,7 +42,8 @@ public class ItemShuffleCommandManager {
                             .then(literal("list").executes(this::listTeams))
                             .then(literal("create")
                                     .then(argument("name", StringArgumentType.string())
-                                            .executes(this::createTeam))
+                                            .then(argument("color", StringArgumentType.string()))
+                                                    .executes(this::createTeam))
                             )
                             .then(literal("addplayer")
                                     .then(argument("name", StringArgumentType.string())
@@ -56,6 +58,14 @@ public class ItemShuffleCommandManager {
                             .then(literal("remove")
                                     .then(argument("name", StringArgumentType.string())
                                             .executes(this::removeTeam))
+                            )
+                            .then(literal("join")
+                                    .then(argument("team", StringArgumentType.string())
+                                            .executes(this::joinTeam))
+                            )
+                            .then(literal("auto")
+                                    .then(argument("size", IntegerArgumentType.integer())
+                                            .executes(this::teamAuto))
                             )
                     )
             );
@@ -118,7 +128,7 @@ public class ItemShuffleCommandManager {
     private int createTeam(CommandContext<ServerCommandSource> ctx) {
         PlayerManager manager = GameManager.getInstance().getPlayerManager();
         try {
-            manager.createTeam(ctx.getArgument("name", String.class));
+            manager.createTeam(ctx.getArgument("name", String.class), ctx.getArgument("color", String.class));
             ctx.getSource().sendFeedback(new LiteralText("§2Team created"), false);
         } catch (Exception e) {
             ctx.getSource().sendError(new LiteralText("§4" + e.getMessage()));
@@ -172,6 +182,28 @@ public class ItemShuffleCommandManager {
             }
         } catch (Exception e) {
             ctx.getSource().sendError(new LiteralText("§cYou are not game player!"));
+        }
+        return 1;
+    }
+
+    private int joinTeam(CommandContext<ServerCommandSource> ctx) {
+        PlayerManager manager = GameManager.getInstance().getPlayerManager();
+        try {
+            manager.joinPlayer(ctx.getArgument("team", String.class), ctx.getSource().getPlayer());
+//            ctx.getSource().sendFeedback(new LiteralText("§2Joined to team"), false);
+        } catch (Exception e) {
+            ctx.getSource().sendError(new LiteralText("§4" + e.getMessage()));
+        }
+        return 1;
+    }
+
+    private int teamAuto(CommandContext<ServerCommandSource> ctx) {
+        PlayerManager manager = GameManager.getInstance().getPlayerManager();
+        try {
+            manager.autoTeams(ctx.getArgument("size", Integer.class));
+//            ctx.getSource().sendFeedback(new LiteralText("§2Joined to team"), false);
+        } catch (Exception e) {
+            ctx.getSource().sendError(new LiteralText("§4" + e.getMessage()));
         }
         return 1;
     }

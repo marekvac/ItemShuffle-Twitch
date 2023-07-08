@@ -2,6 +2,7 @@ package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
 import net.minecraft.item.Item;
+import net.minecraft.text.LiteralText;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,9 +14,13 @@ public class ItemShuffleTeam {
     private Item item;
     private boolean completed;
     private final String name;
+    private Queue<Item> itemQueue;
+    private int runPoints;
+    private final char color;
 
-    public ItemShuffleTeam(String name) {
+    public ItemShuffleTeam(String name, char color) {
         this.name = name;
+        this.color = color;
         this.players = new HashMap<>();
     }
 
@@ -55,11 +60,24 @@ public class ItemShuffleTeam {
             }
         });
         if (completed.get()) {
-            this.completed = true;
+            if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
+                item = itemQueue.poll();
+                runPoints++;
+            } else {
+                this.completed = true;
+            }
+            GameManager.getInstance().getPlayerManager().refreshTeamData(true);
             players.values().forEach(p -> {
-                if (!p.isCompleted()) {
-                    p.setCompleted(true);
-                    p.sendCompletedItem();
+                if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
+                    p.setItem(item);
+                    p.sendItem();
+                    p.setCompleted(false);
+//                    p.getPlayer().sendMessage(new LiteralText("§fRun Points: §b" + runPoints), false);
+                } else {
+                    if (!p.isCompleted()) {
+                        p.setCompleted(true);
+                        p.sendCompletedItem();
+                    }
                 }
             });
             ItemShuffle.getInstance().broadcast("§2Team §2" + name + "§2 has found their item!");
@@ -72,8 +90,50 @@ public class ItemShuffleTeam {
         players.values().forEach(p -> p.setItem(item));
     }
 
+    public void setItemQueue(Queue<Item> itemQueue) {
+        this.itemQueue = new LinkedList<>(itemQueue);
+        item = this.itemQueue.poll();
+        completed = false;
+        runPoints = 0;
+        players.values().forEach(p -> p.setItem(item));
+    }
+
+    public void skipItem() {
+        item = this.itemQueue.poll();
+        completed = false;
+        runPoints--;
+        if (runPoints < 0) runPoints = 0;
+        players.values().forEach(p -> {
+            p.setItem(item);
+            p.sendItem();
+//            p.getPlayer().sendMessage(new LiteralText("§fRun Points: §b" + runPoints), false);
+        });
+        ItemShuffle.getInstance().broadcast("§7Team §f" + name + "§7 skipped their item");
+        GameManager.getInstance().getPlayerManager().refreshTeamData(true);
+    }
+
     public Map<UUID, ItemShufflePlayer> getPlayers() {
         return players;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public char getColor() {
+        return color;
+    }
+
+    public int getFails() {
+        return fails;
+    }
+
+    public Item getItem() {
+        return item;
+    }
+
+    public int getRunPoints() {
+        return runPoints;
     }
 
     public void broadcastScore(boolean onlyFailed) {
@@ -81,6 +141,11 @@ public class ItemShuffleTeam {
             return;
         }
         String score = (fails == 0 ? "§2 " : "§c ") + fails + " fails";
+        ItemShuffle.getInstance().broadcast("§f" + name + "§7: " + score);
+    }
+
+    public void broadcastRunScore() {
+        String score = (runPoints == 0 ? "§c " : "§b ") + runPoints + " points";
         ItemShuffle.getInstance().broadcast("§f" + name + "§7: " + score);
     }
 }

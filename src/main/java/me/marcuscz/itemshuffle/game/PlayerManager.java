@@ -1,11 +1,18 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
+import me.marcuscz.itemshuffle.TeamData;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.command.EntitySelector;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.*;
@@ -17,6 +24,8 @@ public class PlayerManager {
     private final MinecraftServer server;
     private final Map<UUID, ItemShufflePlayer> players;
     private final Map<String, ItemShuffleTeam> teams;
+    private static final char[] TEAM_COLORS = {'9', '2', 'e', 'c', '5', 'b', 'd', '6'};
+    private static final String[] TEAM_NAMES = {"BLUE", "GREEN", "YELLOW", "RED", "PURPLE", "AQUA", "PINK", "GOLD"};
 
     public PlayerManager() {
         this.players = new HashMap<>();
@@ -46,9 +55,10 @@ public class PlayerManager {
         return teams;
     }
 
-    public void createTeam(String name) throws Exception {
+    public void createTeam(String name, String color) throws Exception {
+        if (teams.size() > 4) throw new Exception("Team size is limited to 4!");
         if (teams.containsKey(name)) throw new Exception("Team name already used!");
-        ItemShuffleTeam team = new ItemShuffleTeam(name);
+        ItemShuffleTeam team = new ItemShuffleTeam(name, color.charAt(0));
         teams.put(name, team);
     }
 
@@ -80,8 +90,56 @@ public class PlayerManager {
         teams.remove(teamName);
     }
 
-    public void setPlayerItemQueues(Queue<Item> items) {
+    public void autoTeams(int size) throws Exception {
+        if (size > 4) throw new Exception("Team size is limited to 4!");
+        LiteralText text = new LiteralText("§7Created §b" + size + " §7teams:");
+        teams.clear();
+        for (int i = 0; i < size; i++) {
+            char c = TEAM_COLORS[i];
+            String n = TEAM_NAMES[i];
+            ItemShuffleTeam team = new ItemShuffleTeam(n, c);
+            teams.put(n, team);
+            text.append(new LiteralText(" §" + c + "§nJOIN " + n + "§r").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle teams join " + n))));
+        }
+        ItemShuffle.getInstance().broadcast(text);
+    }
+
+    public void joinPlayer(String teamName, ServerPlayerEntity player) throws Exception {
+        if (!teams.containsKey(teamName)) throw new Exception("Invalid team!");
+        ItemShuffleTeam oldTeam = getPlayersTeam(player.getUuid());
+        if (oldTeam != null) {
+            oldTeam.removePlayer(player.getUuid());
+        }
+        ItemShuffleTeam team = teams.get(teamName);
+        ItemShufflePlayer player1 = new ItemShufflePlayer(player);
+        team.addPlayer(player1);
+        player1.setTeamName(team.getColor());
+        ItemShuffle.getInstance().broadcast("§7Player §f" + player.getName().asString() + " §7joined team §" + team.getColor() + team.getName());
+    }
+
+    public ItemShuffleTeam getPlayersTeam(UUID player) {
+        for (ItemShuffleTeam t : teams.values()) {
+            for (ItemShufflePlayer p : t.getPlayers().values()) {
+                if (p.getUuid() == player) return t;
+            }
+        }
+        return null;
+    }
+
+    public void setItemQueues(Queue<Item> items) {
+        if (teamMode()) {
+            setTeamItemQueues(items);
+        } else {
+            setPlayerItemQueues(items);
+        }
+    }
+
+    private void setPlayerItemQueues(Queue<Item> items) {
         players.values().forEach(p -> p.setItemQueue(items));
+    }
+
+    private void setTeamItemQueues(Queue<Item> items) {
+        teams.values().forEach(t -> t.setItemQueue(items));
     }
 
     public Map<UUID, ItemShufflePlayer> getPlayers() {
@@ -138,6 +196,19 @@ public class PlayerManager {
         players.values().forEach(ItemShufflePlayer::sendItem);
     }
 
+    public void refreshTeamData(boolean show) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        if (show) {
+            buf.writeInt(teams.size());
+            for (ItemShuffleTeam team : teams.values()) {
+                buf.writeBytes(TeamData.fromTeam(team).toPacket());
+            }
+        } else {
+            buf.writeInt(0);
+        }
+        players.values().forEach(p -> p.sendTeamData(buf));
+    }
+
     public void broadcastScore(boolean onlyFailed) {
         if (teamMode()) {
             teams.values().forEach(t -> t.broadcastScore(onlyFailed));
@@ -147,7 +218,11 @@ public class PlayerManager {
     }
 
     public void broadcastRunScore() {
-        players.values().forEach(ItemShufflePlayer::broadcastRunScore);
+        if (teamMode()) {
+            teams.values().forEach(ItemShuffleTeam::broadcastRunScore);
+        } else {
+            players.values().forEach(ItemShufflePlayer::broadcastRunScore);
+        }
     }
 
     public void checkAllPlayersItem() {

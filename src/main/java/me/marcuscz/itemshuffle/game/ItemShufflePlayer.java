@@ -1,6 +1,7 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
+import me.marcuscz.itemshuffle.TeamData;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.Item;
@@ -11,10 +12,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.registry.Registry;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.UUID;
+import java.lang.reflect.Array;
+import java.util.*;
 
 import static me.marcuscz.itemshuffle.NetworkingConstants.*;
 
@@ -43,6 +42,11 @@ public class ItemShufflePlayer {
     public void setItem(Item item) {
         this.item = item;
         completed = false;
+    }
+
+    public void setTeamName(char color) {
+        player.setCustomName(new LiteralText("§" + color + player.getName()));
+        player.setCustomNameVisible(true);
     }
 
     public void setItemQueue(Queue<Item> itemQueue) {
@@ -79,14 +83,19 @@ public class ItemShufflePlayer {
                 player.getInventory().remove(itemStack -> itemStack.getItem() == item, 1, player.getInventory());
             }
 
-            if (ItemShuffle.getInstance().getSettings().gameType == GameType.RUN) {
-                item = itemQueue.poll();
-                sendItem();
-                runPoints++;
-                player.sendMessage(new LiteralText("§fRun Points: §b" + runPoints), false);
+            if (ItemShuffle.getInstance().getSettings().gameType != GameType.TEAM) {
+                if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
+                    item = itemQueue.poll();
+                    sendItem();
+                    runPoints++;
+                    player.sendMessage(new LiteralText("§fRun Points: §b" + runPoints), false);
+                } else {
+                    completed = true;
+                    sendCompletedItem();
+                }
             } else {
-                completed = true;
                 sendCompletedItem();
+                completed = true;
             }
 
             ItemShuffle.getInstance().broadcast("§aPlayer §a" + name + "§a has found their item!");
@@ -94,13 +103,22 @@ public class ItemShufflePlayer {
     }
 
     public void skipItem() {
-        if (ItemShuffle.getInstance().getSettings().gameType != GameType.RUN) return;
-        item = itemQueue.poll();
-        sendItem();
-        runPoints--;
-        if (runPoints < 0) runPoints = 0;
-        player.sendMessage(new LiteralText("§fRun Points: §b" + runPoints), false);
-        ItemShuffle.getInstance().broadcast("§7Player §f" + name + "§7 skipped their item");
+        if (ItemShuffle.getInstance().getSettings().itemType != ItemGenType.RUN) return;
+        if (ItemShuffle.getInstance().getSettings().gameType == GameType.TEAM) {
+            ItemShuffleTeam t = GameManager.getInstance().getPlayerManager().getPlayersTeam(uuid);
+            if (t == null) {
+                player.sendMessage(new LiteralText("§4You are not in team!"), false);
+                return;
+            }
+            t.skipItem();
+        } else {
+            item = itemQueue.poll();
+            sendItem();
+            runPoints--;
+            if (runPoints < 0) runPoints = 0;
+            player.sendMessage(new LiteralText("§fRun Points: §b" + runPoints), false);
+            ItemShuffle.getInstance().broadcast("§7Player §f" + name + "§7 skipped their item");
+        }
     }
 
     public boolean failed() {
@@ -121,6 +139,11 @@ public class ItemShufflePlayer {
 //        buf.writeString(key);
         buf.writeItemStack(new ItemStack(item));
         ServerPlayNetworking.send(player, ITEM_MESSAGES, buf);
+    }
+
+    public void sendTeamData(PacketByteBuf buf) {
+        if (player == null) return;
+        ServerPlayNetworking.send(player, TEAM_DATA, buf);
     }
 
     public void broadcastScore(boolean onlyFailed) {
@@ -243,6 +266,10 @@ public class ItemShufflePlayer {
             return;
         }
         ServerPlayNetworking.send(player, GAME_STOP, PacketByteBufs.empty());
+    }
+
+    public ServerPlayerEntity getPlayer() {
+        return player;
     }
 
     @Override
