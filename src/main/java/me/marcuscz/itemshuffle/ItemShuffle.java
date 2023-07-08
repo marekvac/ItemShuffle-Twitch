@@ -165,7 +165,7 @@ public class ItemShuffle implements ModInitializer {
                 settings = gson.fromJson(fileReader, GameSettings.class);
                 fileReader.close();
             } catch (IOException e) {
-                logger.warn("Could not load entropy settings: " + e.getLocalizedMessage());
+                logger.warn("Could not load itemshuffle settings: " + e.getLocalizedMessage());
             }
         } else {
             settings = new GameSettings();

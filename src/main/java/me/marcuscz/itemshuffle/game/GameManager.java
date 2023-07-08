@@ -43,9 +43,11 @@ public class GameManager {
     }
 
     public boolean start() {
+        ItemShuffle.getLogger().info("starring 1");
         if (active) {
             return false;
         }
+        ItemShuffle.getLogger().info("starring 2");
         try {
             itemManager = new ItemManager();
         } catch (IOException | ParseException e) {
@@ -53,8 +55,10 @@ public class GameManager {
             e.printStackTrace();
             return true;
         }
+        ItemShuffle.getLogger().info("starring 3");
 
         nextRound();
+        ItemShuffle.getLogger().info("starring 4");
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
             playerManager.startVotingClients();
             playerManager.createNewVotes(itemManager);
@@ -67,6 +71,7 @@ public class GameManager {
             ItemShuffle.getInstance().broadcast("§7§oItemShuffle Twitch by MarcusCZ");
             disclaimer = true;
         }
+        ItemShuffle.getLogger().info("starring 5");
         return true;
     }
 

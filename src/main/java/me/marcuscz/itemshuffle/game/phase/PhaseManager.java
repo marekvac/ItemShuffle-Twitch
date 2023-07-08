@@ -21,6 +21,7 @@ import java.util.Optional;
 
 public class PhaseManager {
 
+    private static final double FILE_VERSION = 1.1;
     private double roundsLasted;
     private int currentPhase;
     private final List<ItemPhase> phases;
@@ -29,7 +30,6 @@ public class PhaseManager {
     public PhaseManager() throws IOException, ParseException {
         phases = new ArrayList<>();
         availableItems = new ArrayList<>();
-
         File f = ItemShuffle.getPhasesFile();
 
         if (!f.getParentFile().getParentFile().exists()) {
@@ -49,11 +49,8 @@ public class PhaseManager {
             copyModFile(container);
         }
 
-        File modFile = container.get().getPath("phases-" + ItemShuffle.MC_VERSION + ".json").toFile();
-
         JSONParser jsonParser = new JSONParser();
         FileReader reader = new FileReader(f);
-        FileReader readerMod = new FileReader(modFile);
 
         JSONObject obj = (JSONObject) jsonParser.parse(reader);
         if (!obj.containsKey("version")) {
@@ -64,10 +61,8 @@ public class PhaseManager {
             ItemShuffle.getLogger().info("Updated phases.json file!");
         } else {
             ItemShuffle.getLogger().info("File is in new format");
-            JSONObject objMod = (JSONObject) jsonParser.parse(readerMod);
             JSONObject version = (JSONObject) obj.get("version");
-            JSONObject modVersion = (JSONObject) objMod.get("version");
-            if (!((boolean) version.get("custom")) && ((double) version.get("file")) < ((double) modVersion.get("file"))) {
+            if (!((boolean) version.get("custom")) && ((double) version.get("file")) < FILE_VERSION) {
                 reader.close();
                 copyModFile(container);
                 reader = new FileReader(f);
@@ -85,6 +80,7 @@ public class PhaseManager {
         ItemShuffle.getLogger().info("Phases initialized!");
 
         roundsLasted = 0;
+        ItemShuffle.getLogger().info("asdf 6");
     }
 
     private void copyModFile(Optional<ModContainer> container) throws IOException {
