@@ -4,16 +4,13 @@ import me.marcuscz.itemshuffle.ItemShuffle;
 import me.marcuscz.itemshuffle.TeamData;
 import me.marcuscz.itemshuffle.client.voting.VotingClient;
 import me.marcuscz.itemshuffle.client.voting.VotingItem;
-import me.marcuscz.itemshuffle.game.GameType;
 import me.marcuscz.itemshuffle.game.ItemGenType;
-import me.marcuscz.itemshuffle.game.ItemShuffleTeam;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.Item;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
@@ -58,7 +55,7 @@ public class HudRender {
             return;
         }
 
-        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, new LiteralText("Total votes: " + VotingClient.getTotalVotes()), 10, 20, MathHelper.packRgb(255, 255, 255));
+        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal("Total votes: " + VotingClient.getTotalVotes()), 10, 20, MathHelper.packRgb(255, 255, 255));
 
         List<VotingItem> items = new ArrayList<>(ItemShuffleClient.getInstance().getVotingClient().getItems());
 
@@ -69,9 +66,9 @@ public class HudRender {
 
             DrawableHelper.fill(matrixStack, 10, 31 + (i * 18), 195 + 10 + 45, 35 + (i * 18) + 10, MathHelper.packRgb(155, 22, 217) + 150 << 24);
             DrawableHelper.fill(matrixStack, 10, 31 + (i * 18), 10 + MathHelper.floor((195 + 45) * ratio), (35 + (i * 18) + 10), MathHelper.packRgb(100,65,165) + (150 << 24));
-            DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, new LiteralText((1 + i + altOffset) + ": ").append(item.getName()), 15, 34 + (i * 18), MathHelper.packRgb(255, 255, 255));
+            DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal((1 + i + altOffset) + ": ").append(item.getName()), 15, 34 + (i * 18), MathHelper.packRgb(255, 255, 255));
 
-            Text percentage = new LiteralText(MathHelper.floor(ratio * 100) + " %");
+            Text percentage = Text.literal(MathHelper.floor(ratio * 100) + " %");
             DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, percentage, 195 + 10 + 42 - minecraftClient.textRenderer.getWidth(percentage), 34 + (i * 18), MathHelper.packRgb(255, 255, 255));
 
             i++;
@@ -82,7 +79,7 @@ public class HudRender {
     private void renderTeams(MatrixStack matrixStack) {
         if (ItemShuffle.getInstance().getSettings().teamShowType == TeamData.Show.NONE) return;
 
-        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, new LiteralText("Team Score: §7§o(Mode " + ItemShuffle.getInstance().getSettings().itemType.name() + ")"), 10, 20, MathHelper.packRgb(255, 255, 255));
+        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal("Team Score: §7§o(Mode " + ItemShuffle.getInstance().getSettings().itemType.name() + ")"), 10, 20, MathHelper.packRgb(255, 255, 255));
 
         for (int i = 0; i < teamData.size(); i++) {
             DrawableHelper.fill(matrixStack, 10, 31 + (i * 18), 195 + 10 + 45, 35 + (i * 18) + 10, MathHelper.packRgb(155, 22, 217) + 150 << 24);
@@ -100,7 +97,7 @@ public class HudRender {
                 item = data.completed ? "§a " + name + " §r§2✔" : "§f " + name;
             }
 
-            DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, new LiteralText("§" + data.color + data.name + "§r §7[" + data.players + "]§r: " + score + item), 15, 34 + (i * 18), MathHelper.packRgb(255, 255, 255));
+            DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal("§" + data.color + data.name + "§r §7[" + data.players + "]§r: " + score + item), 15, 34 + (i * 18), MathHelper.packRgb(255, 255, 255));
 
         }
     }
@@ -112,9 +109,9 @@ public class HudRender {
         String name = TranslationStorage.getInstance().get(item.getTranslationKey());
         Text text;
         if (isItemCompleted) {
-            text = new LiteralText("§7Your item: §a§l" + name + " §r§2✔");
+            text = Text.literal("§7Your item: §a§l" + name + " §r§2✔");
         } else {
-            text = new LiteralText("§7Your item: §f§l" + name);
+            text = Text.literal("§7Your item: §f§l" + name);
         }
         DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, text, 10, 106, MathHelper.packRgb(255,255,255));
     }

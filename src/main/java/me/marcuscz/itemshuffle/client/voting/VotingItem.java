@@ -2,8 +2,6 @@ package me.marcuscz.itemshuffle.client.voting;
 
 import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.item.Item;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.Math.floor;

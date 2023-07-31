@@ -2,7 +2,6 @@ package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
 import net.minecraft.item.Item;
-import net.minecraft.text.LiteralText;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;

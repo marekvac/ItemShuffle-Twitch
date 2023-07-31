@@ -1,7 +1,6 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
-import me.marcuscz.itemshuffle.TeamData;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.Item;
@@ -9,10 +8,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.text.Text;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 import static me.marcuscz.itemshuffle.NetworkingConstants.*;
@@ -32,7 +29,7 @@ public class ItemShufflePlayer {
     public ItemShufflePlayer(ServerPlayerEntity player) {
         this.player = player;
         uuid = player.getUuid();
-        name = player.getName().asString();
+        name = player.getName().getString();
     }
 
     public Item getItem() {
@@ -45,7 +42,7 @@ public class ItemShufflePlayer {
     }
 
     public void setTeamName(char color) {
-        player.setCustomName(new LiteralText("§" + color + player.getName()));
+        player.setCustomName(Text.literal("§" + color + player.getName()));
         player.setCustomNameVisible(true);
     }
 
@@ -88,7 +85,7 @@ public class ItemShufflePlayer {
                     item = itemQueue.poll();
                     sendItem();
                     runPoints++;
-                    player.sendMessage(new LiteralText("§fRun Points: §b" + runPoints), false);
+                    player.sendMessage(Text.literal("§fRun Points: §b" + runPoints), false);
                 } else {
                     completed = true;
                     sendCompletedItem();
@@ -107,7 +104,7 @@ public class ItemShufflePlayer {
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.TEAM) {
             ItemShuffleTeam t = GameManager.getInstance().getPlayerManager().getPlayersTeam(uuid);
             if (t == null) {
-                player.sendMessage(new LiteralText("§4You are not in team!"), false);
+                player.sendMessage(Text.literal("§4You are not in team!"), false);
                 return;
             }
             t.skipItem();
@@ -116,7 +113,7 @@ public class ItemShufflePlayer {
             sendItem();
             runPoints--;
             if (runPoints < 0) runPoints = 0;
-            player.sendMessage(new LiteralText("§fRun Points: §b" + runPoints), false);
+            player.sendMessage(Text.literal("§fRun Points: §b" + runPoints), false);
             ItemShuffle.getInstance().broadcast("§7Player §f" + name + "§7 skipped their item");
         }
     }
@@ -230,13 +227,14 @@ public class ItemShufflePlayer {
 
     public void createNewVoting(List<Item> itemList) {
         PacketByteBuf buf = PacketByteBufs.create();
-        int[] ids = new int[itemList.size()];
-        int i = 0;
-        for (Item item1 : itemList) {
-            ids[i] = Registry.ITEM.getRawId(item1);
-            i++;
-        }
-        buf.writeIntArray(ids);
+        //TODO items id parsing
+//        int[] ids = new int[itemList.size()];
+//        int i = 0;
+//        for (Item item1 : itemList) {
+//            ids[i] = Fabric.ITEM.getRawId(item1);
+//            i++;
+//        }
+//        buf.writeIntArray(ids);
         ServerPlayNetworking.send(player, NEXT_ROUND, buf);
     }
 

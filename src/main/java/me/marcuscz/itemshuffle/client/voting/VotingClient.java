@@ -1,7 +1,6 @@
 package me.marcuscz.itemshuffle.client.voting;
 
 import net.minecraft.item.Item;
-import net.minecraft.util.registry.Registry;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
@@ -38,10 +37,11 @@ public class VotingClient {
 
     private void setItems(int[] ids) {
         items.clear();
-        for (int id : ids) {
-            Item item = Registry.ITEM.get(id);
-            items.add(new VotingItem(item));
-        }
+        //TODO items id parsing
+//        for (int id : ids) {
+//            Item item = Registry.ITEM.get(id);
+//            items.add(new VotingItem(item));
+//        }
     }
 
     public void nextVote(int[] ids) {

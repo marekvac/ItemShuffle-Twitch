@@ -9,12 +9,11 @@ import me.marcuscz.itemshuffle.game.GameType;
 import me.marcuscz.itemshuffle.game.ItemGenType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.screen.ScreenTexts;
+import net.minecraft.text.Text;
 
 import static java.lang.Math.floor;
 
@@ -26,7 +25,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
     private int gameTypeIndex, itemTypeIndex, teamDataIndex;
 
     public ItemShuffleConfigurationScreen(Screen parent) {
-        super(new LiteralText("ItemShuffle Options"));
+        super(Text.literal("ItemShuffle Options"));
         this.parent = parent;
         gameTypeIndex = GameType.getIndex(settings.gameType);
         itemTypeIndex = ItemGenType.getIndex(settings.itemType);
@@ -43,7 +42,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
                 150,
                 20,
                 "Duration",
-                (settings.time-1200) / 24000d, (slider, title1, value) -> new LiteralText("Value: " + ((int) floor(value * 20+1)) + "m"),
+                (settings.time-1200) / 24000d, (slider, title1, value) -> Text.literal("Value: " + ((int) floor(value * 20+1)) + "m"),
                 value -> {
                     settings.time = (int) floor((value * 20)) * 1200 +1200;
                     changes = true;
@@ -51,131 +50,133 @@ public class ItemShuffleConfigurationScreen extends Screen {
         );
         this.addDrawableChild(gameDurationWidget);
 
-        ButtonWidget removeItemsWidget = new ButtonWidget(
-                this.width / 2 + 10,
-                50,
-                150,
-                20,
-                new LiteralText("Remove Items: " + (settings.removeItems ? "On" : "Off")),
+        ButtonWidget removeItemsWidget = ButtonWidget.builder(
+                Text.literal("Remove Items: " + (settings.removeItems ? "On" : "Off")),
                 button -> {
                     settings.removeItems = !settings.removeItems;
-                    button.setMessage(new LiteralText("Remove Items: " + (settings.removeItems ? "On" : "Off")));
+                    button.setMessage(Text.literal("Remove Items: " + (settings.removeItems ? "On" : "Off")));
                     changes = true;
-                }
-        );
+                }).dimensions(this.width / 2 + 10,
+                50,
+                150,
+                20
+                ).build();
         this.addDrawableChild(removeItemsWidget);
 
-        ButtonWidget gameTypeWidget = new ButtonWidget(
-                this.width / 2 - 160,
-                75,
-                150,
-                20,
-                new LiteralText("Game Type: " + settings.gameType.toString()),
+        ButtonWidget gameTypeWidget = ButtonWidget.builder(
+                Text.literal("Game Type: " + settings.gameType.toString()),
                 button -> {
                     gameTypeIndex++;
                     if (gameTypeIndex >= GameType.values().length) {
                         gameTypeIndex = 0;
                     }
                     settings.gameType = GameType.values()[gameTypeIndex];
-                    button.setMessage(new LiteralText("Game Type: " + settings.gameType.toString()));
+                    button.setMessage(Text.literal("Game Type: " + settings.gameType.toString()));
                     changes = true;
-                }
-        );
-        this.addDrawableChild(gameTypeWidget);
-
-        ButtonWidget itemTypeWidget = new ButtonWidget(
-                this.width / 2 + 10,
+                }).dimensions(
+                this.width / 2 - 160,
                 75,
                 150,
-                20,
-                new LiteralText("Item Generator: " + settings.itemType.toString()),
+                20
+                ).build();
+        this.addDrawableChild(gameTypeWidget);
+
+        ButtonWidget itemTypeWidget = ButtonWidget.builder(
+                Text.literal("Item Generator: " + settings.itemType.toString()),
                 button -> {
                     itemTypeIndex++;
                     if (itemTypeIndex >= ItemGenType.values().length) {
                         itemTypeIndex = 0;
                     }
                     settings.itemType = ItemGenType.values()[itemTypeIndex];
-                    button.setMessage(new LiteralText("Item Generator: " + settings.itemType.toString()));
+                    button.setMessage(Text.literal("Item Generator: " + settings.itemType.toString()));
                     changes = true;
-                }
-        );
+                }).dimensions(
+                this.width / 2 + 10,
+                75,
+                150,
+                20
+                ).build();
         this.addDrawableChild(itemTypeWidget);
 
-        ButtonWidget showTimersWidget = new ButtonWidget(
-                this.width / 2 - 160,
-                100,
-                150,
-                20,
-                new LiteralText("Show Timer: " + (settings.showTimers ? "On" : "Off")),
+        ButtonWidget showTimersWidget = ButtonWidget.builder(
+                Text.literal("Show Timer: " + (settings.showTimers ? "On" : "Off")),
                 button -> {
                     settings.showTimers = !settings.showTimers;
-                    button.setMessage(new LiteralText("Show Timer: " + (settings.showTimers ? "On" : "Off")));
+                    button.setMessage(Text.literal("Show Timer: " + (settings.showTimers ? "On" : "Off")));
                     changes = true;
                 }
-        );
+                ).dimensions(
+                this.width / 2 - 160,
+                100,
+                150,
+                20
+                ).build();
         this.addDrawableChild(showTimersWidget);
 
-        ButtonWidget pauseOnFailWidget = new ButtonWidget(
+        ButtonWidget pauseOnFailWidget = ButtonWidget.builder(Text.literal("Pause On Fail: " + (settings.pauseOnFail ? "On" : "Off")),
+                button -> {
+                    settings.pauseOnFail = !settings.pauseOnFail;
+                    button.setMessage(Text.literal("Pause On Fail: " + (settings.pauseOnFail ? "On" : "Off")));
+                    changes = true;
+                }).dimensions(
                 this.width / 2 + 10,
                 100,
                 150,
-                20,
-                new LiteralText("Pause On Fail: " + (settings.pauseOnFail ? "On" : "Off")),
-                button -> {
-                    settings.pauseOnFail = !settings.pauseOnFail;
-                    button.setMessage(new LiteralText("Pause On Fail: " + (settings.pauseOnFail ? "On" : "Off")));
-                    changes = true;
-                }
-        );
+                20
+                ).build();
         this.addDrawableChild(pauseOnFailWidget);
 
-        ButtonWidget giveFoodWidget = new ButtonWidget(
+        ButtonWidget giveFoodWidget = ButtonWidget.builder(
+                Text.literal("Give Food: " + (settings.giveFood ? "On" : "Off")),
+                button -> {
+                    settings.giveFood = !settings.giveFood;
+                    button.setMessage(Text.literal("Give Food: " + (settings.giveFood ? "On" : "Off")));
+                    changes = true;
+                }
+        ).dimensions(
                 this.width / 2 - 160,
                 125,
                 150,
-                20,
-                new LiteralText("Give Food: " + (settings.giveFood ? "On" : "Off")),
-                button -> {
-                    settings.giveFood = !settings.giveFood;
-                    button.setMessage(new LiteralText("Give Food: " + (settings.giveFood ? "On" : "Off")));
-                    changes = true;
-                }
-        );
+                20
+        ).build();
         this.addDrawableChild(giveFoodWidget);
 
-        ButtonWidget showItemWidget = new ButtonWidget(
+        ButtonWidget showItemWidget = ButtonWidget.builder(
+                Text.literal("Show Items: " + (settings.showItems ? "On" : "Off")),
+                button -> {
+                    settings.showItems = !settings.showItems;
+                    button.setMessage(Text.literal("Show Items: " + (settings.showItems ? "On" : "Off")));
+                    changes = true;
+                }
+        ).dimensions(
                 this.width / 2 + 10,
                 125,
                 150,
-                20,
-                new LiteralText("Show Items: " + (settings.showItems ? "On" : "Off")),
-                button -> {
-                    settings.showItems = !settings.showItems;
-                    button.setMessage(new LiteralText("Show Items: " + (settings.showItems ? "On" : "Off")));
-                    changes = true;
-                }
-        );
+                20
+        ).build();
         this.addDrawableChild(showItemWidget);
 
-        ButtonWidget teamDataShowWidget = new ButtonWidget(
-                this.width / 2 - 160,
-                150,
-                150,
-                20,
-                new LiteralText("Show Team Data: " + settings.teamShowType.toString()),
+        ButtonWidget teamDataShowWidget = ButtonWidget.builder(
+                Text.literal("Show Team Data: " + settings.teamShowType.toString()),
                 button -> {
                     teamDataIndex++;
                     if (teamDataIndex >= TeamData.Show.values().length) {
                         teamDataIndex = 0;
                     }
                     settings.teamShowType = TeamData.Show.values()[teamDataIndex];
-                    button.setMessage(new LiteralText("Show Team Data: " + settings.teamShowType.toString()));
+                    button.setMessage(Text.literal("Show Team Data: " + settings.teamShowType.toString()));
                     changes = true;
                 }
-        );
+        ).dimensions(
+                this.width / 2 - 160,
+                150,
+                150,
+                20
+        ).build();
         this.addDrawableChild(teamDataShowWidget);
 
-        ButtonWidget integrationSettings = new ButtonWidget(this.width / 2 - 85, 175, 170, 20, new LiteralText("Twitch Settings"), button -> client.setScreen(new TwitchConfigurationScreen(this)));
+        ButtonWidget integrationSettings = new ButtonWidget(this.width / 2 - 85, 175, 170, 20, Text.literal("Twitch Settings"), button -> client.setScreen(new TwitchConfigurationScreen(this)));
         if (MinecraftClient.getInstance().getGame().getCurrentSession() != null) {
             integrationSettings.active = false;
         }
@@ -190,8 +191,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
         this.renderBackground(matrices);
 
 
-        TranslatableText title = new TranslatableText("ItemShuffle settings");
-        drawTextWithShadow(matrices, this.textRenderer, title, this.width / 2 - textRenderer.getWidth(title)/2, 10, 16777215);
+        drawTextWithShadow(matrices, this.textRenderer, "ItemShuffle settings", this.width / 2 - textRenderer.getWidth("ItemShuffle settings")/2, 10, 16777215);
         super.render(matrices, mouseX, mouseY, delta);
     }
 
@@ -203,7 +203,6 @@ public class ItemShuffleConfigurationScreen extends Screen {
         onClose();
     }
 
-    @Override
     public void onClose() {
         this.client.setScreen(this.parent);
     }

@@ -12,11 +12,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.MessageType;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
-import net.minecraft.util.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,7 +25,7 @@ import java.util.UUID;
 
 public class ItemShuffle implements ModInitializer {
 
-    public static String MC_VERSION = "1.17";
+    public static String MC_VERSION = "1.19";
     private static ItemShuffle instance;
     private static final Logger logger = LogManager.getLogger();
     private MinecraftServer server;
@@ -133,11 +130,12 @@ public class ItemShuffle implements ModInitializer {
     }
 
     public void broadcast(Text message) {
-        server.getPlayerManager().broadcastChatMessage(message, MessageType.CHAT, Util.NIL_UUID);
+        server.getPlayerManager().broadcast(message, false);
+//        server.getPlayerManager().broadcastChatMessage(message, MessageType.CHAT, Util.NIL_UUID);
     }
 
     public void broadcast(String message) {
-        broadcast(new LiteralText(message));
+        broadcast(Text.literal(message));
     }
 
     public void broadcast(String message, boolean actionBar) {
@@ -145,7 +143,7 @@ public class ItemShuffle implements ModInitializer {
             broadcast(message);
             return;
         }
-        server.getPlayerManager().getPlayerList().forEach(player -> player.sendMessage(new LiteralText(message), true));
+        server.getPlayerManager().getPlayerList().forEach(player -> player.sendMessage(Text.literal(message), true));
     }
 
     public GameSettings getSettings() {

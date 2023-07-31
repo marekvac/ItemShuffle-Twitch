@@ -16,7 +16,7 @@ import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import org.json.simple.parser.ParseException;
 
 import java.io.File;
@@ -54,7 +54,7 @@ public class ItemShuffleClient implements ClientModInitializer {
             String key = lastItem.getTranslationKey();
             String lang = TranslationStorage.getInstance().get(key);
             if (client.player != null) {
-                client.player.sendMessage(new LiteralText("§aYour material: §6" + lang), false);
+                client.player.sendMessage(Text.literal("§aYour material: §6" + lang), false);
             }
         });
 
@@ -192,6 +192,6 @@ public class ItemShuffleClient implements ClientModInitializer {
         if (MinecraftClient.getInstance().player == null) {
             return;
         }
-        MinecraftClient.getInstance().player.sendMessage(new LiteralText(message), false);
+        MinecraftClient.getInstance().player.sendMessage(Text.literal(message), false);
     }
 }
