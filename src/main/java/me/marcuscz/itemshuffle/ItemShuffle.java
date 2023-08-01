@@ -125,6 +125,12 @@ public class ItemShuffle implements ModInitializer {
         return logger;
     }
 
+    public static void logDebug(String message) {
+        if (instance.settings.debug) {
+            getLogger().info("[ItmSf DEBUG]: " + message);
+        }
+    }
+
     public MinecraftServer getServer() {
         return server;
     }
