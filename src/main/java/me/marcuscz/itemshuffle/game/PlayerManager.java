@@ -5,12 +5,14 @@ import me.marcuscz.itemshuffle.TeamData;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.item.Item;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
 
@@ -92,9 +94,13 @@ public class PlayerManager {
         if (size > 4) throw new Exception("Team size is limited to 4!");
         MutableText text = Text.literal("§7Created §b" + size + " §7teams:");
         teams.clear();
+        server.getScoreboard().getTeams().clear();
         for (int i = 0; i < size; i++) {
             char c = TEAM_COLORS[i];
             String n = TEAM_NAMES[i];
+            Team t = server.getScoreboard().addTeam(n);
+            t.setColor(Formatting.byCode(c));
+            t.setFriendlyFireAllowed(false);
             ItemShuffleTeam team = new ItemShuffleTeam(n, c);
             teams.put(n, team);
             text.append(Text.literal(" §" + c + "§nJOIN " + n + "§r").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle teams join " + n))));
@@ -112,6 +118,8 @@ public class PlayerManager {
         ItemShufflePlayer player1 = new ItemShufflePlayer(player);
         team.addPlayer(player1);
         player1.setTeamName(team.getColor());
+        server.getScoreboard().clearPlayerTeam(player.getName().getString());
+        server.getScoreboard().addPlayerToTeam(player.getName().getString(), server.getScoreboard().getTeam(team.getName()));
         ItemShuffle.getInstance().broadcast("§7Player §f" + player.getName().getString() + " §7joined team §" + team.getColor() + team.getName());
     }
 
