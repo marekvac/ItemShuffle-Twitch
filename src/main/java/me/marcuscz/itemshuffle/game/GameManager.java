@@ -5,6 +5,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
 import org.json.simple.parser.ParseException;
 
@@ -240,7 +241,7 @@ public class GameManager {
             if (currentTime <= 200) {
                 if (!timesUp) {
                     timesUp = true;
-                    playerManager.updateTimers(MathHelper.packRgb(170, 50, 50));
+                    playerManager.updateTimers(ColorHelper.Argb.getArgb(150,170,50,50));
                 }
                 if (currentTime == 0) {
                     if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {

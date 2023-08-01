@@ -11,6 +11,7 @@ import net.minecraft.text.ClickEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.*;
@@ -260,7 +261,8 @@ public class PlayerManager {
     }
 
     public void updateTimers() {
-        int color = ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH ? MathHelper.packRgb(100,65,165) : MathHelper.packRgb(70, 150, 70);
+
+        int color = ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH ? ColorHelper.Argb.getArgb(150,100,65,165) : ColorHelper.Argb.getArgb(150,70,150,70);
         this.updateTimers(color);
     }
 
