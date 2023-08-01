@@ -2,7 +2,7 @@ package me.marcuscz.itemshuffle.game.phase;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registries;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public class DefaultItemBuilder {
 
     private final List<ItemPhase> phases = new ArrayList<>();
@@ -128,7 +129,7 @@ public class DefaultItemBuilder {
             jsonPhase.put("rounds", phase.getRoundDuration());
             JSONArray items = new JSONArray();
             for (PhaseItem item : phase.getItems()) {
-                items.add(Registry.ITEM.getId(item.getItem()).toString());
+                items.add(Registries.ITEM.getId(item.getItem()).toString());
             }
             jsonPhase.put("items", items);
             jsonPhases.add(jsonPhase);

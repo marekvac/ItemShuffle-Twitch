@@ -1,9 +1,7 @@
 package me.marcuscz.itemshuffle.client.screens.widgets;
 
 import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 
 public class ItemShuffleSliderWidget extends SliderWidget {
 
@@ -12,7 +10,7 @@ public class ItemShuffleSliderWidget extends SliderWidget {
     ValueUpdater valueUpdater;
 
     public ItemShuffleSliderWidget(int x, int y, int width, int height, String title, double value, MessageSupplier messageSupplier, ValueUpdater valueUpdater) {
-        super(x, y, width, height, new LiteralText(title), value);
+        super(x, y, width, height, Text.literal(title), value);
         this.title = title;
         this.messageSupplier=messageSupplier;
         this.valueUpdater=valueUpdater;

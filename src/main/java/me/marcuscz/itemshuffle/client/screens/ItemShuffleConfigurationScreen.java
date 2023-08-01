@@ -176,13 +176,17 @@ public class ItemShuffleConfigurationScreen extends Screen {
         ).build();
         this.addDrawableChild(teamDataShowWidget);
 
-        ButtonWidget integrationSettings = new ButtonWidget(this.width / 2 - 85, 175, 170, 20, Text.literal("Twitch Settings"), button -> client.setScreen(new TwitchConfigurationScreen(this)));
-        if (MinecraftClient.getInstance().getGame().getCurrentSession() != null) {
+        ButtonWidget integrationSettings = ButtonWidget.builder(
+                Text.literal("Twitch Settings"),
+                button -> client.setScreen(new TwitchConfigurationScreen(this))
+        ).dimensions(this.width / 2 - 85, 175, 170, 20).build();
+
+        if (MinecraftClient.getInstance().getSession() != null) {
             integrationSettings.active = false;
         }
         this.addDrawableChild(integrationSettings);
 
-        ButtonWidget done = new ButtonWidget(this.width / 2 - 100, this.height - 30, 200, 20, ScreenTexts.DONE, button -> onDone());
+        ButtonWidget done = ButtonWidget.builder(ScreenTexts.DONE, button -> onDone()).dimensions(this.width / 2 - 100, this.height - 30, 200, 20).build();
         this.addDrawableChild(done);
 
     }

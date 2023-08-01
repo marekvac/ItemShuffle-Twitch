@@ -3,8 +3,8 @@ package me.marcuscz.itemshuffle.game;
 import me.marcuscz.itemshuffle.ItemShuffle;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.ClickEvent;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Style;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 import org.json.simple.parser.ParseException;
 
@@ -92,7 +92,7 @@ public class GameManager {
         paused = true;
         playerManager.hideTimers();
         playerManager.hideItems();
-        ItemShuffle.getInstance().broadcast(new LiteralText("§6Game has been paused! ").append(new LiteralText("§2§nResume").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle resume")))));
+        ItemShuffle.getInstance().broadcast(Text.literal("§6Game has been paused! ").append(Text.literal("§2§nResume").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle resume")))));
         return true;
     }
 

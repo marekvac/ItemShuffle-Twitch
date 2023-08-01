@@ -5,7 +5,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.OptionsScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -20,7 +19,16 @@ public class OptionsScreenMixin extends Screen {
 
     @Inject(method = "init", at = @At("TAIL"))
     private void insertEntropySettingsButton(CallbackInfo ci) {
-        this.addDrawableChild(new ButtonWidget(this.width - 100, this.height - 20, 100, 20, new TranslatableText("ItemShuffle Settings"), button -> this.client.setScreen(new ItemShuffleConfigurationScreen(this))));
+        ButtonWidget widget = ButtonWidget.builder(
+                Text.literal("ItemShuffle Settings"),
+                button -> this.client.setScreen(new ItemShuffleConfigurationScreen(this))
+            ).dimensions(
+                this.width - 100,
+                this.height - 20,
+                100,
+                20
+        ).build();
+        this.addDrawableChild(widget);
     }
 
 }

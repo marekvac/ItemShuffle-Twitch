@@ -4,10 +4,11 @@ import me.marcuscz.itemshuffle.ItemShuffle;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
-import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -101,7 +102,7 @@ public class PhaseManager {
         ItemPhaseBuilder builder = new ItemPhaseBuilder();
         items.forEach(i -> {
             Identifier id = new Identifier((String) i);
-            Item item = Registry.ITEM.get(id);
+            Item item = Registries.ITEM.get(id);
             builder.addItem(item);
         });
         ItemPhase itemPhase = new ItemPhase(rounds.intValue());

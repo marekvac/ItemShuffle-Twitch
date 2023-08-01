@@ -3,21 +3,18 @@ package me.marcuscz.itemshuffle.game;
 import me.marcuscz.itemshuffle.ItemShuffle;
 import me.marcuscz.itemshuffle.TeamData;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.command.EntitySelector;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class PlayerManager {
 
@@ -92,14 +89,14 @@ public class PlayerManager {
 
     public void autoTeams(int size) throws Exception {
         if (size > 4) throw new Exception("Team size is limited to 4!");
-        LiteralText text = new LiteralText("§7Created §b" + size + " §7teams:");
+        MutableText text = Text.literal("§7Created §b" + size + " §7teams:");
         teams.clear();
         for (int i = 0; i < size; i++) {
             char c = TEAM_COLORS[i];
             String n = TEAM_NAMES[i];
             ItemShuffleTeam team = new ItemShuffleTeam(n, c);
             teams.put(n, team);
-            text.append(new LiteralText(" §" + c + "§nJOIN " + n + "§r").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle teams join " + n))));
+            text.append(Text.literal(" §" + c + "§nJOIN " + n + "§r").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle teams join " + n))));
         }
         ItemShuffle.getInstance().broadcast(text);
     }
@@ -114,7 +111,7 @@ public class PlayerManager {
         ItemShufflePlayer player1 = new ItemShufflePlayer(player);
         team.addPlayer(player1);
         player1.setTeamName(team.getColor());
-        ItemShuffle.getInstance().broadcast("§7Player §f" + player.getName().asString() + " §7joined team §" + team.getColor() + team.getName());
+        ItemShuffle.getInstance().broadcast("§7Player §f" + player.getName().getString() + " §7joined team §" + team.getColor() + team.getName());
     }
 
     public ItemShuffleTeam getPlayersTeam(UUID player) {

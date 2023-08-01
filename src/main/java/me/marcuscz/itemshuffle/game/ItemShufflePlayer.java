@@ -7,6 +7,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
@@ -227,14 +228,13 @@ public class ItemShufflePlayer {
 
     public void createNewVoting(List<Item> itemList) {
         PacketByteBuf buf = PacketByteBufs.create();
-        //TODO items id parsing
-//        int[] ids = new int[itemList.size()];
-//        int i = 0;
-//        for (Item item1 : itemList) {
-//            ids[i] = Fabric.ITEM.getRawId(item1);
-//            i++;
-//        }
-//        buf.writeIntArray(ids);
+        int[] ids = new int[itemList.size()];
+        int i = 0;
+        for (Item item1 : itemList) {
+            ids[i] = Registries.ITEM.getRawId(item1);
+            i++;
+        }
+        buf.writeIntArray(ids);
         ServerPlayNetworking.send(player, NEXT_ROUND, buf);
     }
 
