@@ -83,7 +83,7 @@ public class HudRender {
         DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal("Team Score: §7§o(Mode " + ItemShuffle.getInstance().getSettings().itemType.name() + ")"), 10, 20, ColorHelper.Argb.getArgb(255,255,255,255));
 
         for (int i = 0; i < teamData.size(); i++) {
-            DrawableHelper.fill(matrixStack, 10, 31 + (i * 18), 195 + 10 + 45, 35 + (i * 18) + 10, ColorHelper.Argb.getArgb(150,155,22,217));
+            DrawableHelper.fill(matrixStack, 10, 31 + (i * 18), 195 + 10 + 45, 35 + (i * 18) + 10, ColorHelper.Argb.getArgb(70,0,0,0));
             TeamData data;
             try {
                 data = teamData.get(i);
