@@ -63,24 +63,6 @@ public class ItemShuffleConfigurationScreen extends Screen {
                 ).build();
         this.addDrawableChild(removeItemsWidget);
 
-        ButtonWidget gameTypeWidget = ButtonWidget.builder(
-                Text.literal("Game Type: " + settings.gameType.toString()),
-                button -> {
-                    gameTypeIndex++;
-                    if (gameTypeIndex >= GameType.values().length) {
-                        gameTypeIndex = 0;
-                    }
-                    settings.gameType = GameType.values()[gameTypeIndex];
-                    button.setMessage(Text.literal("Game Type: " + settings.gameType.toString()));
-                    changes = true;
-                }).dimensions(
-                this.width / 2 - 160,
-                75,
-                150,
-                20
-                ).build();
-        this.addDrawableChild(gameTypeWidget);
-
         ButtonWidget itemTypeWidget = ButtonWidget.builder(
                 Text.literal("Item Generator: " + settings.itemType.toString()),
                 button -> {
@@ -96,8 +78,68 @@ public class ItemShuffleConfigurationScreen extends Screen {
                 75,
                 150,
                 20
-                ).build();
+        ).build();
+        itemTypeWidget.active = settings.gameType != GameType.TWITCH;
         this.addDrawableChild(itemTypeWidget);
+
+
+        ButtonWidget integrationSettings = ButtonWidget.builder(
+                Text.literal("Twitch Settings"),
+                button -> client.setScreen(new TwitchConfigurationScreen(this))
+        ).dimensions(this.width / 2 - 85, 175, 170, 20).build();
+        integrationSettings.active = settings.gameType == GameType.TWITCH;
+        this.addDrawableChild(integrationSettings);
+
+
+        ButtonWidget teamDataShowWidget = ButtonWidget.builder(
+                Text.literal("Show Team Data: " + settings.teamShowType.toString()),
+                button -> {
+                    teamDataIndex++;
+                    if (teamDataIndex >= TeamData.Show.values().length) {
+                        teamDataIndex = 0;
+                    }
+                    settings.teamShowType = TeamData.Show.values()[teamDataIndex];
+                    button.setMessage(Text.literal("Show Team Data: " + settings.teamShowType.toString()));
+                    changes = true;
+                }
+        ).dimensions(
+                this.width / 2 - 160,
+                150,
+                150,
+                20
+        ).build();
+        teamDataShowWidget.active = settings.gameType == GameType.TEAM;
+        this.addDrawableChild(teamDataShowWidget);
+
+        ButtonWidget gameTypeWidget = ButtonWidget.builder(
+                Text.literal("Game Type: " + settings.gameType.toString()),
+                button -> {
+                    gameTypeIndex++;
+                    if (gameTypeIndex >= GameType.values().length) {
+                        gameTypeIndex = 0;
+                    }
+                    settings.gameType = GameType.values()[gameTypeIndex];
+                    button.setMessage(Text.literal("Game Type: " + settings.gameType.toString()));
+                    changes = true;
+                    if (settings.gameType == GameType.TWITCH) {
+                        itemTypeWidget.active = false;
+                        integrationSettings.active = true;
+                    } else {
+                        itemTypeWidget.active = true;
+                        integrationSettings.active = false;
+                    }
+                    if (settings.gameType == GameType.TEAM) {
+                        teamDataShowWidget.active = true;
+                    } else {
+                        teamDataShowWidget.active = false;
+                    }
+                }).dimensions(
+                this.width / 2 - 160,
+                75,
+                150,
+                20
+                ).build();
+        this.addDrawableChild(gameTypeWidget);
 
         ButtonWidget showTimersWidget = ButtonWidget.builder(
                 Text.literal("Show Timer: " + (settings.showTimers ? "On" : "Off")),
@@ -157,35 +199,6 @@ public class ItemShuffleConfigurationScreen extends Screen {
         ).build();
         this.addDrawableChild(showItemWidget);
 
-        ButtonWidget teamDataShowWidget = ButtonWidget.builder(
-                Text.literal("Show Team Data: " + settings.teamShowType.toString()),
-                button -> {
-                    teamDataIndex++;
-                    if (teamDataIndex >= TeamData.Show.values().length) {
-                        teamDataIndex = 0;
-                    }
-                    settings.teamShowType = TeamData.Show.values()[teamDataIndex];
-                    button.setMessage(Text.literal("Show Team Data: " + settings.teamShowType.toString()));
-                    changes = true;
-                }
-        ).dimensions(
-                this.width / 2 - 160,
-                150,
-                150,
-                20
-        ).build();
-        this.addDrawableChild(teamDataShowWidget);
-
-        ButtonWidget integrationSettings = ButtonWidget.builder(
-                Text.literal("Twitch Settings"),
-                button -> client.setScreen(new TwitchConfigurationScreen(this))
-        ).dimensions(this.width / 2 - 85, 175, 170, 20).build();
-
-//        if (MinecraftClient.getInstance().getSession() != null) {
-//            integrationSettings.active = false;
-//        }
-        this.addDrawableChild(integrationSettings);
-
         ButtonWidget done = ButtonWidget.builder(ScreenTexts.DONE, button -> onDone()).dimensions(this.width / 2 - 100, this.height - 30, 200, 20).build();
         this.addDrawableChild(done);
 
@@ -201,6 +214,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
 
     private void onDone() {
         if (changes) {
+            if (settings.gameType == GameType.TWITCH) settings.itemType = ItemGenType.RANDOM;
             settings.printSettings();
             ItemShuffleClient.getInstance().saveGameSettings();
         }
