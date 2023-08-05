@@ -4,6 +4,8 @@ import me.marcuscz.itemshuffle.ItemShuffle;
 import me.marcuscz.itemshuffle.TeamData;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
@@ -141,11 +143,17 @@ public class PlayerManager {
     }
 
     private void setPlayerItemQueues(Queue<Item> items) {
-        players.values().forEach(p -> p.setItemQueue(items));
+        players.values().forEach(p -> {
+            p.setItemQueue(items);
+            p.resetScore();
+        });
     }
 
     private void setTeamItemQueues(Queue<Item> items) {
-        teams.values().forEach(t -> t.setItemQueue(items));
+        teams.values().forEach(t -> {
+            t.setItemQueue(items);
+            t.resetPoints();
+        });
     }
 
     public Map<UUID, ItemShufflePlayer> getPlayers() {
@@ -221,12 +229,17 @@ public class PlayerManager {
             buf.writeInt(players.size());
             for (ItemShufflePlayer player : players.values()) {
                 buf.writeString(player.getPlayer().getName().getString());
-                if (player.getItem() != null) {
-                    buf.writeItemStack(new ItemStack(player.getItem()));
-                    buf.writeBoolean(player.isCompleted());
-                } else {
+                if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN || ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
                     buf.writeItemStack(new ItemStack(Items.AIR));
-                    buf.writeBoolean(false);
+                    buf.writeInt(player.getPoints());
+                } else {
+                    if (player.getItem() != null) {
+                        buf.writeItemStack(new ItemStack(player.getItem()));
+                        buf.writeInt(player.isCompleted() ? 1 : 0);
+                    } else {
+                        buf.writeItemStack(new ItemStack(Items.AIR));
+                        buf.writeInt(0);
+                    }
                 }
             }
         } else {
@@ -276,6 +289,27 @@ public class PlayerManager {
             });
         }
         return allCompleted.get();
+    }
+
+    public boolean isAnyoneCompleted() {
+        if (teamMode()) {
+            for (ItemShuffleTeam team : teams.values()) {
+                if (team.isCompleted()) return true;
+            }
+        } else {
+            for (ItemShufflePlayer player : players.values()) {
+                if (player.isCompleted()) return true;
+            }
+        }
+        return false;
+    }
+
+    public void resetPlayerScores() {
+        if (teamMode()) {
+            teams.values().forEach(ItemShuffleTeam::resetPoints);
+        } else {
+            players.values().forEach(ItemShufflePlayer::resetScore);
+        }
     }
 
     public void giveFoods() {

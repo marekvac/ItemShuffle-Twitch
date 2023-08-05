@@ -51,6 +51,9 @@ public class ItemShufflePlayer {
         this.itemQueue = new LinkedList<>(itemQueue);
         this.item = this.itemQueue.poll();
         completed = false;
+    }
+
+    public void resetScore() {
         runPoints = 0;
     }
 
@@ -74,6 +77,10 @@ public class ItemShufflePlayer {
         return uuid;
     }
 
+    public int getPoints() {
+        return runPoints;
+    }
+
     public void checkItem() {
         if (completed) return;
         if (player.getInventory().contains(new ItemStack(item))) {
@@ -87,7 +94,12 @@ public class ItemShufflePlayer {
                     sendItem();
                     runPoints++;
                     player.sendMessage(Text.literal("§fRun Points: §b" + runPoints), false);
-                } else {
+                    GameManager.getInstance().getPlayerManager().refreshOtherItems(true);
+                } else if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
+                    runPoints++;
+                    completed = true;
+                }
+                else {
                     completed = true;
                     sendCompletedItem();
                     GameManager.getInstance().getPlayerManager().refreshOtherItems(true);

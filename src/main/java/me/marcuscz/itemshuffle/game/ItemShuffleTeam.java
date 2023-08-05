@@ -62,6 +62,9 @@ public class ItemShuffleTeam {
             if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
                 item = itemQueue.poll();
                 runPoints++;
+            } else if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
+                runPoints++;
+                this.completed = true;
             } else {
                 this.completed = true;
             }
@@ -93,8 +96,11 @@ public class ItemShuffleTeam {
         this.itemQueue = new LinkedList<>(itemQueue);
         item = this.itemQueue.poll();
         completed = false;
-        runPoints = 0;
         players.values().forEach(p -> p.setItem(item));
+    }
+
+    public void resetPoints() {
+        runPoints = 0;
     }
 
     public void skipItem() {

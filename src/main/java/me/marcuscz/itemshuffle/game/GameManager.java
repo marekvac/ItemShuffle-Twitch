@@ -60,6 +60,9 @@ public class GameManager {
             playerManager.startVotingClients();
             playerManager.createNewVotes(itemManager);
         }
+        if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
+            playerManager.resetPlayerScores();
+        }
         if (ItemShuffle.getInstance().getSettings().giveFood) {
             playerManager.giveFoods();
         }
@@ -78,6 +81,9 @@ public class GameManager {
             playerManager.hideItems();
             if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
                 playerManager.stopVotingClients();
+            }
+            if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
+                showVsScore();
             }
             playerManager.clearPlayers();
             ItemShuffle.getInstance().broadcast("§cStopped");
@@ -157,6 +163,11 @@ public class GameManager {
         playerManager.refreshTeamData(false);
         playerManager.refreshOtherItems(false);
 
+        if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
+            nextRound();
+            return;
+        }
+
         if (playerManager.allFailed()) {
             ItemShuffle.getInstance().broadcast("§4Everyone failed their item!");
             pauseOrContinue(isSkip);
@@ -185,6 +196,11 @@ public class GameManager {
 
     public void showRunScore() {
         ItemShuffle.getInstance().broadcast("§7RUN Score:");
+        playerManager.broadcastRunScore();
+    }
+
+    public void showVsScore() {
+        ItemShuffle.getInstance().broadcast("§7VERSUS Points:");
         playerManager.broadcastRunScore();
     }
 
@@ -230,14 +246,23 @@ public class GameManager {
 
             // Check players items
             playerManager.checkAllPlayersItem();
-            if (playerManager.isEveryoneCompleted()) {
-                if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
-                    showRunScore();
-                    stop();
-                } else {
+
+            if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
+                if (playerManager.isAnyoneCompleted()) {
+                    showVsScore();
                     endRound(false);
                 }
+            } else {
+                if (playerManager.isEveryoneCompleted()) {
+                    if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
+                        showRunScore();
+                        stop();
+                    } else {
+                        endRound(false);
+                    }
+                }
             }
+
 
             // <= 10 seconds remain
             if (currentTime <= 200) {

@@ -4,12 +4,14 @@ import me.marcuscz.itemshuffle.ItemShuffle;
 import me.marcuscz.itemshuffle.TeamData;
 import me.marcuscz.itemshuffle.client.voting.VotingClient;
 import me.marcuscz.itemshuffle.client.voting.VotingItem;
+import me.marcuscz.itemshuffle.game.GameType;
 import me.marcuscz.itemshuffle.game.ItemGenType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
 import net.minecraft.util.Pair;
@@ -29,7 +31,7 @@ public class HudRender {
     private int currentTime;
     private int color;
     private Item item;
-    private HashMap<String, Pair<Item,Boolean>> items;
+    private HashMap<String, Pair<Item,Integer>> items;
     private boolean isItemCompleted;
     private final MinecraftClient minecraftClient = MinecraftClient.getInstance();
     private boolean showVotes = false;
@@ -40,7 +42,7 @@ public class HudRender {
     public void renderTimer(MatrixStack matrixStack, float tickDelta) {
         renderVoting(matrixStack);
         if (showItem) {
-            if (showOtherItems && minecraftClient.options.playerListKey.isPressed()) {
+            if (ItemShuffle.getInstance().getSettings().gameType != GameType.TEAM && showOtherItems && minecraftClient.options.playerListKey.isPressed()) {
                 renderOtherItems(matrixStack);
             } else {
                 renderItem(matrixStack);
@@ -100,7 +102,7 @@ public class HudRender {
                 return;
             }
 
-            String score = ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN ? "§b§l" + data.runScore : "§c§l" + data.fails;
+            String score = ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN || ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS ? "§b§l" + data.runScore : "§c§l" + data.fails;
             String item = "";
             if (ItemShuffle.getInstance().getSettings().teamShowType == TeamData.Show.FULL) {
                 String name = TranslationStorage.getInstance().get(data.item.getTranslationKey());
@@ -136,10 +138,14 @@ public class HudRender {
         items.forEach((player, pair) -> {
             String name = TranslationStorage.getInstance().get(pair.getLeft().getTranslationKey());
             Text text;
-            if (pair.getRight()) {
-                text = Text.literal("§7" + player + ": §a" + name + " §r§2✔");
+            if (pair.getLeft() != Items.AIR) {
+                if (pair.getRight() > 0) {
+                    text = Text.literal("§7" + player + ": §a" + name + " §r§2✔");
+                } else {
+                    text = Text.literal("§7" + player + ": §f" + name);
+                }
             } else {
-                text = Text.literal("§7" + player + ": §f" + name);
+                text = Text.literal("§7" + player + ": §b" + pair.getRight());
             }
             DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, text, 15, y.getAndAdd(10), ColorHelper.Argb.getArgb(255,255,255,255));
         });
@@ -205,7 +211,7 @@ public class HudRender {
         }
         items = new HashMap<>();
         for (int i = 0; i < size; i++) {
-            items.put(buf.readString(), new Pair<>(buf.readItemStack().getItem(), buf.readBoolean()));
+            items.put(buf.readString(), new Pair<>(buf.readItemStack().getItem(), buf.readInt()));
         }
         showOtherItems = true;
     }
