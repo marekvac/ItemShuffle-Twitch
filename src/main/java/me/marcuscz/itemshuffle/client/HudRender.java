@@ -12,11 +12,14 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.Item;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HudRender {
 
@@ -26,16 +29,22 @@ public class HudRender {
     private int currentTime;
     private int color;
     private Item item;
+    private HashMap<String, Pair<Item,Boolean>> items;
     private boolean isItemCompleted;
     private final MinecraftClient minecraftClient = MinecraftClient.getInstance();
     private boolean showVotes = false;
     private ArrayList<TeamData> teamData = new ArrayList<>();
     private boolean showTeamData = false;
+    private boolean showOtherItems = false;
 
     public void renderTimer(MatrixStack matrixStack, float tickDelta) {
         renderVoting(matrixStack);
         if (showItem) {
-            renderItem(matrixStack);
+            if (showOtherItems && minecraftClient.options.playerListKey.isPressed()) {
+                renderOtherItems(matrixStack);
+            } else {
+                renderItem(matrixStack);
+            }
         }
         if (showTeamData) {
             renderTeams(matrixStack);
@@ -117,6 +126,25 @@ public class HudRender {
         DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, text, 10, 106, ColorHelper.Argb.getArgb(255,255,255,255));
     }
 
+    private void renderOtherItems(MatrixStack matrixStack) {
+        if (items == null || items.size() == 0) {
+            return;
+        }
+        DrawableHelper.fill(matrixStack, 10, 103, 195 + 10 + 45, 106 + (10* items.size()) +10, ColorHelper.Argb.getArgb(70,0,0,0));
+        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal("§7§oOther player items:"), 15, 106, ColorHelper.Argb.getArgb(255,255,255,255));
+        AtomicInteger y = new AtomicInteger(116);
+        items.forEach((player, pair) -> {
+            String name = TranslationStorage.getInstance().get(pair.getLeft().getTranslationKey());
+            Text text;
+            if (pair.getRight()) {
+                text = Text.literal("§7" + player + ": §a" + name + " §r§2✔");
+            } else {
+                text = Text.literal("§7" + player + ": §f" + name);
+            }
+            DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, text, 15, y.getAndAdd(10), ColorHelper.Argb.getArgb(255,255,255,255));
+        });
+    }
+
     private double getProgress() {
         double dTime = time;
         double timeElapsed = time - currentTime;
@@ -166,6 +194,20 @@ public class HudRender {
             teamData.add(TeamData.fromPacket(buf));
         }
         showTeamData = true;
+    }
+
+    public void setOtherItems(PacketByteBuf buf) {
+        showOtherItems = false;
+        int size = buf.readInt();
+        if (size == 0) {
+            items = null;
+            return;
+        }
+        items = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            items.put(buf.readString(), new Pair<>(buf.readItemStack().getItem(), buf.readBoolean()));
+        }
+        showOtherItems = true;
     }
 
     public void setShowTeamData(boolean showTeamData) {

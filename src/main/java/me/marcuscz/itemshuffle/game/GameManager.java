@@ -136,6 +136,7 @@ public class GameManager {
         }
         if (ItemShuffle.getInstance().getSettings().showItems) {
             playerManager.showItems();
+            playerManager.refreshOtherItems(true);
         }
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.TEAM) {
             playerManager.refreshTeamData(true);
@@ -154,6 +155,7 @@ public class GameManager {
         playerManager.hideTimers();
         playerManager.hideItems();
         playerManager.refreshTeamData(false);
+        playerManager.refreshOtherItems(false);
 
         if (playerManager.allFailed()) {
             ItemShuffle.getInstance().broadcast("§4Everyone failed their item!");

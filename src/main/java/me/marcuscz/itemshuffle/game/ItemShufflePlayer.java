@@ -90,6 +90,7 @@ public class ItemShufflePlayer {
                 } else {
                     completed = true;
                     sendCompletedItem();
+                    GameManager.getInstance().getPlayerManager().refreshOtherItems(true);
                 }
             } else {
                 sendCompletedItem();
@@ -137,6 +138,11 @@ public class ItemShufflePlayer {
 //        buf.writeString(key);
         buf.writeItemStack(new ItemStack(item));
         ServerPlayNetworking.send(player, ITEM_MESSAGES, buf);
+    }
+
+    public void sendOtherItems(PacketByteBuf buf) {
+        if (player == null) return;
+        ServerPlayNetworking.send(player, OTHER_ITEMS, buf);
     }
 
     public void sendTeamData(PacketByteBuf buf) {

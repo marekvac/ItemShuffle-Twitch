@@ -4,6 +4,7 @@
   "package": "me.marcuscz.itemshuffle.mixins",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "BeehiveBlockMixin"
   ],
   "client": [
     "OptionsScreenMixin"

@@ -3,6 +3,7 @@ package me.marcuscz.itemshuffle;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.marcuscz.itemshuffle.game.GameManager;
 import me.marcuscz.itemshuffle.game.ItemManager;
 import me.marcuscz.itemshuffle.game.ItemShuffleTeam;
@@ -10,6 +11,7 @@ import me.marcuscz.itemshuffle.game.PlayerManager;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.EntitySelector;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.item.Item;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -66,6 +68,7 @@ public class ItemShuffleCommandManager {
                     )
             );
             dispatcher.register(literal("skip").executes(this::skipPlayerItem));
+            dispatcher.register(literal("whatitem").then(argument("player", EntityArgumentType.player()).executes(this::whatItemPlayerHave)));
         });
         ItemShuffle.getLogger().info("Registered commands!");
     }
@@ -200,6 +203,29 @@ public class ItemShuffleCommandManager {
 //            ctx.getSource().sendFeedback(Text.literal("§2Joined to team"), false);
         } catch (Exception e) {
             ctx.getSource().sendError(Text.literal("§4" + e.getMessage()));
+        }
+        return 1;
+    }
+
+    private int whatItemPlayerHave(CommandContext<ServerCommandSource> ctx) {
+        PlayerManager manager = GameManager.getInstance().getPlayerManager();
+        if (GameManager.isActive()) {
+            try {
+                ServerPlayerEntity player = ctx.getArgument("player", EntitySelector.class).getPlayer(ctx.getSource());
+                if (!manager.isGamePlayer(player.getUuid())) {
+                    ctx.getSource().sendError(Text.literal("§cInvalid player!"));
+                }
+                Item item = manager.getPlayer(player.getUuid()).getItem();
+                Text text;
+                if (manager.getPlayer(player.getUuid()).isCompleted()) {
+                    text = Text.literal("§7Item of player " + player.getName().getString() + ": §a" + item.getName().getString() + " §r§2✔");
+                } else {
+                    text = Text.literal("§7Item of player " + player.getName().getString() + ": §f" + item.getName().getString());
+                }
+                ctx.getSource().sendMessage(text);
+            } catch (CommandSyntaxException e) {
+                ctx.getSource().sendError(Text.literal("§4" + e.getMessage()));
+            }
         }
         return 1;
     }

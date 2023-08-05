@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -35,6 +36,7 @@ public class ItemShuffleClient implements ClientModInitializer {
     private VotingClient votingClient;
     public boolean votingEnabled = false;
     public Item lastItem;
+    private static KeyBinding keyBinding;
 
     @Override
     public void onInitializeClient() {
@@ -71,6 +73,7 @@ public class ItemShuffleClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(HIDE_ITEM, (client, handler, buf, responseSender) -> hudRender.showItem(false));
         ClientPlayNetworking.registerGlobalReceiver(COMPLETE_ITEM, (client, handler, buf, responseSender) -> hudRender.setItemCompleted(true));
         ClientPlayNetworking.registerGlobalReceiver(TEAM_DATA, ((client, handler, buf, responseSender) -> hudRender.setTeamData(buf)));
+        ClientPlayNetworking.registerGlobalReceiver(OTHER_ITEMS, ((client, handler, buf, responseSender) -> hudRender.setOtherItems(buf)));
 
         ClientPlayNetworking.registerGlobalReceiver(SETTING_SYNC, (client, handler, buf, responseSender) -> {
             ItemShuffle.getInstance().setSettings(new GameSettings(buf));

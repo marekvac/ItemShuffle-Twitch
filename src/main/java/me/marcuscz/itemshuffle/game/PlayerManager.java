@@ -215,6 +215,26 @@ public class PlayerManager {
         players.values().forEach(p -> p.sendTeamData(buf));
     }
 
+    public void refreshOtherItems(boolean show) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        if (show) {
+            buf.writeInt(players.size());
+            for (ItemShufflePlayer player : players.values()) {
+                buf.writeString(player.getPlayer().getName().getString());
+                if (player.getItem() != null) {
+                    buf.writeItemStack(new ItemStack(player.getItem()));
+                    buf.writeBoolean(player.isCompleted());
+                } else {
+                    buf.writeItemStack(new ItemStack(Items.AIR));
+                    buf.writeBoolean(false);
+                }
+            }
+        } else {
+            buf.writeInt(0);
+        }
+        players.values().forEach(p -> p.sendOtherItems(buf));
+    }
+
     public void broadcastScore(boolean onlyFailed) {
         if (teamMode()) {
             teams.values().forEach(t -> t.broadcastScore(onlyFailed));
