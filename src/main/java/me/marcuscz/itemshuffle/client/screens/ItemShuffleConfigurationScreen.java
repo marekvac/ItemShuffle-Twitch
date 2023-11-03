@@ -41,8 +41,8 @@ public class ItemShuffleConfigurationScreen extends Screen {
                 50,
                 150,
                 20,
-                "Duration",
-                (settings.time-1200) / 72000d, (slider, title1, value) -> Text.literal("Value: " + ((int) floor(value * 60+1)) + "m"),
+                "Round Duration",
+                (settings.time-1200) / 72000d, (slider, title1, value) -> Text.literal("Round Duration: " + ((int) floor(value * 60+1)) + "m"),
                 value -> {
                     settings.time = (int) floor((value * 60)) * 1200 +1200;
                     changes = true;
@@ -56,11 +56,13 @@ public class ItemShuffleConfigurationScreen extends Screen {
                     settings.removeItems = !settings.removeItems;
                     button.setMessage(Text.literal("Remove Items: " + (settings.removeItems ? "On" : "Off")));
                     changes = true;
-                }).dimensions(this.width / 2 + 10,
-                50,
+                }).dimensions(
+                this.width / 2 + 10,
+                150,
                 150,
                 20
                 ).build();
+        removeItemsWidget.active = !settings.blockMode;
         this.addDrawableChild(removeItemsWidget);
 
         ButtonWidget itemTypeWidget = ButtonWidget.builder(
@@ -110,6 +112,22 @@ public class ItemShuffleConfigurationScreen extends Screen {
         ).build();
         teamDataShowWidget.active = settings.gameType == GameType.TEAM;
         this.addDrawableChild(teamDataShowWidget);
+
+        ButtonWidget blockModeWidget = ButtonWidget.builder(
+                Text.literal("Standing mode: " + (settings.blockMode ? "On" : "Off")),
+                button -> {
+                    settings.blockMode = !settings.blockMode;
+                    button.setMessage(Text.literal("Standing mode: " + (settings.blockMode ? "On" : "Off")));
+                    removeItemsWidget.active = !settings.blockMode;
+                    changes = true;
+                }
+        ).dimensions(
+                this.width / 2 + 10,
+                50,
+                150,
+                20
+        ).build();
+        this.addDrawableChild(blockModeWidget);
 
         ButtonWidget gameTypeWidget = ButtonWidget.builder(
                 Text.literal("Game Type: " + settings.gameType.toString()),

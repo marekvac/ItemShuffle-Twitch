@@ -44,7 +44,7 @@ public class ItemShuffleTeam {
             return false;
         }
         fails++;
-        ItemShuffle.getInstance().broadcast("§4Team §c" + name + "§4 failed their item!");
+        ItemShuffle.getInstance().broadcast("§4Team §c" + name + "§4 failed their " + (ItemShuffle.getInstance().getSettings().blockMode ? "block" : "item") + "!");
         return true;
     }
 
@@ -82,7 +82,7 @@ public class ItemShuffleTeam {
                     }
                 }
             });
-            ItemShuffle.getInstance().broadcast("§2Team §2" + name + "§2 has found their item!");
+            ItemShuffle.getInstance().broadcast("§2Team §2" + name + "§2 has found their " + (ItemShuffle.getInstance().getSettings().blockMode ? "block" : "item") + "!");
         }
     }
 
@@ -113,7 +113,7 @@ public class ItemShuffleTeam {
             p.sendItem();
 //            p.getPlayer().sendMessage(new LiteralText("§fRun Points: §b" + runPoints), false);
         });
-        ItemShuffle.getInstance().broadcast("§7Team §f" + name + "§7 skipped their item");
+        ItemShuffle.getInstance().broadcast("§7Team §f" + name + "§7 skipped their " + (ItemShuffle.getInstance().getSettings().blockMode ? "block" : "item"));
         GameManager.getInstance().getPlayerManager().refreshTeamData(true);
     }
 

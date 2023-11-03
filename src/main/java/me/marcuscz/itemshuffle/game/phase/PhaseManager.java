@@ -4,10 +4,7 @@ import me.marcuscz.itemshuffle.ItemShuffle;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -127,7 +124,16 @@ public class PhaseManager {
             builder.addItem(item);
         });
         ItemPhase itemPhase = new ItemPhase(rounds.intValue());
-        itemPhase.setItems(builder.getItems());
+        itemPhase.addItems(builder.getItems(), false, 50);
+
+        JSONArray blocks = (JSONArray) phase.get("standing_only");
+        ItemPhaseBuilder builder2 = new ItemPhaseBuilder();
+        blocks.forEach(i -> {
+            Identifier id = new Identifier((String) i);
+            Item item = Registries.ITEM.get(id);
+            builder2.addItem(item);
+        });
+        itemPhase.addItems(builder2.getItems(), true, 5);
         this.phases.add(itemPhase);
     }
 

@@ -1,7 +1,7 @@
 {
   "version":
   {
-    "file": 1.4,
+    "file": 2.1,
     "custom": false
   },
   "phases": [
@@ -21,11 +21,9 @@
         "minecraft:oak_door",
         "minecraft:oak_boat",
         "minecraft:birch_planks",
-        "minecraft:birch_sapling",
         "minecraft:birch_log",
         "minecraft:stripped_birch_log",
         "minecraft:birch_wood",
-        "minecraft:birch_leaves",
         "minecraft:birch_button",
         "minecraft:birch_pressure_plate",
         "minecraft:birch_door",
@@ -124,7 +122,6 @@
         "minecraft:chest",
         "minecraft:stone_bricks",
         "minecraft:stone_button",
-        "minecraft:hay_block",
         "minecraft:lantern",
         "minecraft:bricks",
         "minecraft:brick_wall",
@@ -159,6 +156,31 @@
         "minecraft:birch_chest_boat",
         "minecraft:grass"
       ],
+      "standing_only": [
+        "minecraft:coal_ore",
+        "minecraft:iron_ore",
+        "minecraft:gold_ore",
+        "minecraft:bee_nest",
+        "minecraft:dirt_path",
+        "minecraft:farmland",
+        "minecraft:oak_sapling",
+        "minecraft:birch_sapling",
+        "minecraft:birch_leaves",
+        "minecraft:oak_leaves",
+        "minecraft:poppy",
+        "minecraft:dandelion",
+        "minecraft:azure_bluet",
+        "minecraft:oxeye_daisy",
+        "minecraft:lily_of_the_valley",
+        "minecraft:bedrock",
+        "minecraft:grass",
+        "minecraft:raw_iron_block",
+        "minecraft:raw_copper_block",
+        "minecraft:hay_block",
+        "minecraft:clay",
+        "minecraft:gravel",
+        "minecraft:grass_block"
+      ],
       "rounds": 2
     },
     {
@@ -169,7 +191,6 @@
         "minecraft:stripped_spruce_log",
         "minecraft:stripped_spruce_wood",
         "minecraft:spruce_wood",
-        "minecraft:spruce_leaves",
         "minecraft:spruce_slab",
         "minecraft:spruce_fence",
         "minecraft:spruce_stairs",
@@ -180,7 +201,6 @@
         "minecraft:acacia_log",
         "minecraft:stripped_acacia_log",
         "minecraft:acacia_wood",
-        "minecraft:acacia_leaves",
         "minecraft:acacia_pressure_plate",
         "minecraft:acacia_door",
         "minecraft:green_wool",
@@ -229,6 +249,28 @@
         "minecraft:light_weighted_pressure_plate",
         "minecraft:amethyst_block"
       ],
+      "standing_only": [
+        "minecraft:lapis_ore",
+        "minecraft:diamond_ore",
+        "minecraft:redstone_ore",
+        "minecraft:crying_obsidian",
+        "minecraft:cake",
+        "minecraft:spruce_sapling",
+        "minecraft:dark_oak_sapling",
+        "minecraft:spruce_leaves",
+        "minecraft:acacia_leaves",
+        "minecraft:blue_orchid",
+        "minecraft:red_tulip",
+        "minecraft:orange_tulip",
+        "minecraft:white_tulip",
+        "minecraft:pink_tulip",
+        "minecraft:brown_mushroom_block",
+        "minecraft:red_mushroom_block",
+        "minecraft:mushroom_stem",
+        "minecraft:podzol",
+        "minecraft:snow_block",
+        "minecraft:ice"
+      ],
       "rounds": 4
     },
     {
@@ -247,6 +289,13 @@
         "minecraft:jungle_door",
         "minecraft:brown_wool",
         "minecraft:mossy_cobblestone"
+      ],
+      "standing_only": [
+        "minecraft:cactus",
+        "minecraft:vine",
+        "minecraft:melon",
+        "minecraft:azalea",
+        "minecraft:flowering_azalea"
       ],
       "rounds": 3
     },
@@ -273,8 +322,11 @@
         "minecraft:mossy_stone_brick_wall",
         "minecraft:brown_candle",
         "minecraft:brown_concrete",
-        "minecraft:grass_block",
         "minecraft:daylight_detector"
+      ],"standing_only": [
+        "minecraft:nether_gold_ore",
+        "minecraft:nether_quartz_ore",
+        "minecraft:nether_wart_block"
       ],
       "rounds": 2
     }

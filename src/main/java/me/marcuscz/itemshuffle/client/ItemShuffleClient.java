@@ -55,8 +55,9 @@ public class ItemShuffleClient implements ClientModInitializer {
             hudRender.setItemCompleted(false);
             String key = lastItem.getTranslationKey();
             String lang = TranslationStorage.getInstance().get(key);
+            String message = ItemShuffle.getInstance().getSettings().blockMode ? "You must stand on" : "Your material";
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§aYour material: §6" + lang), false);
+                client.player.sendMessage(Text.literal("§a" + message + ": §6" + lang), false);
             }
         });
 

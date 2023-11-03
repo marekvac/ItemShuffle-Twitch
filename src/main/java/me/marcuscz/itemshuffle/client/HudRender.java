@@ -120,10 +120,11 @@ public class HudRender {
         }
         String name = TranslationStorage.getInstance().get(item.getTranslationKey());
         Text text;
+        String i = ItemShuffle.getInstance().getSettings().blockMode ? "block" : "item";
         if (isItemCompleted) {
-            text = Text.literal("§7Your item: §a§l" + name + " §r§2✔");
+            text = Text.literal("§7Your " + i + ": §a§l" + name + " §r§2✔");
         } else {
-            text = Text.literal("§7Your item: §f§l" + name);
+            text = Text.literal("§7Your " + i + ": §f§l" + name);
         }
         DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, text, 10, 106, ColorHelper.Argb.getArgb(255,255,255,255));
     }
@@ -132,8 +133,9 @@ public class HudRender {
         if (items == null || items.size() == 0) {
             return;
         }
+        String i = ItemShuffle.getInstance().getSettings().blockMode ? "blocks" : "items";
         DrawableHelper.fill(matrixStack, 10, 103, 195 + 10 + 45, 106 + (10* items.size()) +10, ColorHelper.Argb.getArgb(70,0,0,0));
-        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal("§7§oOther player items:"), 15, 106, ColorHelper.Argb.getArgb(255,255,255,255));
+        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal("§7§oOther player " + i + ":"), 15, 106, ColorHelper.Argb.getArgb(255,255,255,255));
         AtomicInteger y = new AtomicInteger(116);
         items.forEach((player, pair) -> {
             String name = TranslationStorage.getInstance().get(pair.getLeft().getTranslationKey());

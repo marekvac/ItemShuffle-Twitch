@@ -17,6 +17,7 @@ public class GameSettings {
     public boolean showItems = true;
     public boolean debug = false;
     public TeamData.Show teamShowType = TeamData.Show.FULL;
+    public boolean blockMode = false;
 
     public GameSettings() {
 
@@ -34,6 +35,7 @@ public class GameSettings {
         showItems = buf.readBoolean();
         debug = buf.readBoolean();
         teamShowType = buf.readEnumConstant(TeamData.Show.class);
+        blockMode = buf.readBoolean();
     }
 
     @Override
@@ -49,6 +51,8 @@ public class GameSettings {
                 ", giveFood=" + giveFood +
                 ", showItems=" + showItems +
                 ", debug=" + debug +
+                ", teamShowType=" + teamShowType +
+                ", blockMode=" + blockMode +
                 '}';
     }
 
@@ -69,6 +73,7 @@ public class GameSettings {
         buf.writeBoolean(showItems);
         buf.writeBoolean(debug);
         buf.writeEnumConstant(teamShowType);
+        buf.writeBoolean(blockMode);
         return buf;
     }
 }

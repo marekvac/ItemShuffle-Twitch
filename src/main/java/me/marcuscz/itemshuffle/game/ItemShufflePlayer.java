@@ -83,11 +83,8 @@ public class ItemShufflePlayer {
 
     public void checkItem() {
         if (completed) return;
-        if (player.getInventory().contains(new ItemStack(item))) {
-            if (ItemShuffle.getInstance().getSettings().removeItems) {
-                player.getInventory().remove(itemStack -> itemStack.getItem() == item, 1, player.getInventory());
-            }
 
+        if (checkCompleted()) {
             if (ItemShuffle.getInstance().getSettings().gameType != GameType.TEAM) {
                 if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
                     item = itemQueue.poll();
@@ -109,8 +106,21 @@ public class ItemShufflePlayer {
                 completed = true;
             }
 
-            ItemShuffle.getInstance().broadcast("§aPlayer §a" + name + "§a has found their item!");
+            ItemShuffle.getInstance().broadcast("§aPlayer §a" + name + "§a has found their " + (ItemShuffle.getInstance().getSettings().blockMode ? "block" : "item") + "!");
         }
+    }
+
+    private boolean checkCompleted() {
+        boolean c = false;
+        if (ItemShuffle.getInstance().getSettings().blockMode) {
+            c = player.getSteppingBlockState().getBlock().asItem() == item;
+        } else {
+            c = player.getInventory().contains(new ItemStack(item));
+            if (c && ItemShuffle.getInstance().getSettings().removeItems) {
+                player.getInventory().remove(itemStack -> itemStack.getItem() == item, 1, player.getInventory());
+            }
+        }
+        return c;
     }
 
     public void skipItem() {
@@ -128,7 +138,7 @@ public class ItemShufflePlayer {
             runPoints--;
             if (runPoints < 0) runPoints = 0;
             player.sendMessage(Text.literal("§fRun Points: §b" + runPoints), false);
-            ItemShuffle.getInstance().broadcast("§7Player §f" + name + "§7 skipped their item");
+            ItemShuffle.getInstance().broadcast("§7Player §f" + name + "§7 skipped their " + (ItemShuffle.getInstance().getSettings().blockMode ? "block" : "item"));
         }
     }
 
@@ -137,7 +147,7 @@ public class ItemShufflePlayer {
             return false;
         }
         fails++;
-        ItemShuffle.getInstance().broadcast("§4Player §c" + name + "§4 failed their item!");
+        ItemShuffle.getInstance().broadcast("§4Player §c" + name + "§4 failed their " + (ItemShuffle.getInstance().getSettings().blockMode ? "block" : "item") + "!");
         return true;
     }
 
