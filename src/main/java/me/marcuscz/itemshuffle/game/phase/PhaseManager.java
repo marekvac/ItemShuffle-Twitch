@@ -119,6 +119,7 @@ public class PhaseManager {
         JSONArray items = (JSONArray) phase.get("items");
         ItemPhaseBuilder builder = new ItemPhaseBuilder();
         items.forEach(i -> {
+            ItemShuffle.logDebug("Current item: " + i);
             Identifier id = new Identifier((String) i);
             Item item = Registries.ITEM.get(id);
             builder.addItem(item);
