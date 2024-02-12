@@ -115,11 +115,12 @@ public class ItemShuffleCommandManager {
 
     private int listTeams(CommandContext<ServerCommandSource> ctx) {
         Map<String, ItemShuffleTeam> teams = GameManager.getInstance().getPlayerManager().getTeams();
-        ctx.getSource().sendFeedback(Text.literal("§3Teams:"), false);
+        ctx.getSource().sendFeedback(() -> Text.literal("§3Teams:"), false);
         teams.forEach((name, t) -> {
             String msg = "§l" + name;
             msg += " §7(" + t.getPlayers().values().size() + ") - " + t.getPlayers().values();
-            ctx.getSource().sendFeedback(Text.literal(msg), false);
+            String finalMsg = msg;
+            ctx.getSource().sendFeedback(() -> Text.literal(finalMsg), false);
         });
         return 1;
     }
@@ -128,7 +129,7 @@ public class ItemShuffleCommandManager {
         PlayerManager manager = GameManager.getInstance().getPlayerManager();
         try {
             manager.createTeam(ctx.getArgument("name", String.class), ctx.getArgument("color", String.class));
-            ctx.getSource().sendFeedback(Text.literal("§2Team created"), false);
+            ctx.getSource().sendFeedback(() -> Text.literal("§2Team created"), false);
         } catch (Exception e) {
             ctx.getSource().sendError(Text.literal("§4" + e.getMessage()));
         }
@@ -140,7 +141,7 @@ public class ItemShuffleCommandManager {
         try {
             ServerPlayerEntity player = ctx.getArgument("player", EntitySelector.class).getPlayer(ctx.getSource());
             manager.addPlayerToTeam(ctx.getArgument("name", String.class), player);
-            ctx.getSource().sendFeedback(Text.literal("§2Player added"), false);
+            ctx.getSource().sendFeedback(() -> Text.literal("§2Player added"), false);
         } catch (Exception e) {
             ctx.getSource().sendError(Text.literal("§4" + e.getMessage()));
         }
@@ -152,7 +153,7 @@ public class ItemShuffleCommandManager {
         try {
             ServerPlayerEntity player = ctx.getArgument("player", EntitySelector.class).getPlayer(ctx.getSource());
             manager.removePlayerFromTeam(ctx.getArgument("name", String.class), player);
-            ctx.getSource().sendFeedback(Text.literal("§2Player removed"), false);
+            ctx.getSource().sendFeedback(() -> Text.literal("§2Player removed"), false);
         } catch (Exception e) {
             ctx.getSource().sendError(Text.literal("§4" + e.getMessage()));
         }
@@ -163,7 +164,7 @@ public class ItemShuffleCommandManager {
         PlayerManager manager = GameManager.getInstance().getPlayerManager();
         try {
             manager.removeTeam(ctx.getArgument("name", String.class));
-            ctx.getSource().sendFeedback(Text.literal("§2Team removed"), false);
+            ctx.getSource().sendFeedback(() -> Text.literal("§2Team removed"), false);
         } catch (Exception e) {
             ctx.getSource().sendError(Text.literal("§4" + e.getMessage()));
         }
@@ -232,7 +233,7 @@ public class ItemShuffleCommandManager {
 
     private int printItemQueue(CommandContext<ServerCommandSource> ctx) {
         ItemManager itemManager = GameManager.getInstance().getItemManager();
-        ctx.getSource().sendFeedback(Text.literal(itemManager.getRunItemList().toString()), false);
+        ctx.getSource().sendFeedback(() -> Text.literal(itemManager.getRunItemList().toString()), false);
         return 1;
     }
 

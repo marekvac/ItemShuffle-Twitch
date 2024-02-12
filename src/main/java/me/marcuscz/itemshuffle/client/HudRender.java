@@ -7,9 +7,8 @@ import me.marcuscz.itemshuffle.client.voting.VotingItem;
 import me.marcuscz.itemshuffle.game.GameType;
 import me.marcuscz.itemshuffle.game.ItemGenType;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.resource.language.TranslationStorage;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
@@ -39,17 +38,17 @@ public class HudRender {
     private boolean showTeamData = false;
     private boolean showOtherItems = false;
 
-    public void renderTimer(MatrixStack matrixStack, float tickDelta) {
-        renderVoting(matrixStack);
+    public void renderTimer(DrawContext context, float tickDelta) {
+        renderVoting(context);
         if (showItem) {
             if (ItemShuffle.getInstance().getSettings().gameType != GameType.TEAM && showOtherItems && minecraftClient.options.playerListKey.isPressed()) {
-                renderOtherItems(matrixStack);
+                renderOtherItems(context);
             } else {
-                renderItem(matrixStack);
+                renderItem(context);
             }
         }
         if (showTeamData) {
-            renderTeams(matrixStack);
+            renderTeams(context);
         }
         if (!showTimer) {
             return;
@@ -57,17 +56,17 @@ public class HudRender {
 
         int width = MinecraftClient.getInstance().getWindow().getScaledWidth();
         int width1 = MathHelper.floor(getProgress() * width);
-        DrawableHelper.fill(matrixStack, 0, 0, width, 10, ColorHelper.Argb.getArgb(80,0,0,0));
-        DrawableHelper.fill(matrixStack, 0, 0, width1, 10, color);
+        context.fill(0, 0, width, 10, ColorHelper.Argb.getArgb(80,0,0,0));
+        context.fill(0, 0, width1, 10, color);
 
     }
 
-    private void renderVoting(MatrixStack matrixStack) {
+    private void renderVoting(DrawContext context) {
         if (!showVotes || !ItemShuffleClient.getInstance().votingEnabled || ItemShuffleClient.getInstance().getVotingClient().isPaused() || ItemShuffleClient.getInstance().getVotingClient().getItems().size() == 0) {
             return;
         }
 
-        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal("Total votes: " + VotingClient.getTotalVotes()), 10, 20, ColorHelper.Argb.getArgb(255,255,255,255));
+        context.drawTextWithShadow(minecraftClient.textRenderer, Text.literal("Total votes: " + VotingClient.getTotalVotes()), 10, 20, ColorHelper.Argb.getArgb(255,255,255,255));
 
         List<VotingItem> items = new ArrayList<>(ItemShuffleClient.getInstance().getVotingClient().getItems());
 
@@ -76,25 +75,25 @@ public class HudRender {
         for (VotingItem item : items) {
             double ratio = item.getRatio();
 
-            DrawableHelper.fill(matrixStack, 10, 31 + (i * 18), 195 + 10 + 45, 35 + (i * 18) + 10, ColorHelper.Argb.getArgb(150,155,22,217));
-            DrawableHelper.fill(matrixStack, 10, 31 + (i * 18), 10 + MathHelper.floor((195 + 45) * ratio), (35 + (i * 18) + 10), ColorHelper.Argb.getArgb(150,100,65,165));
-            DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal((1 + i + altOffset) + ": ").append(item.getName()), 15, 34 + (i * 18), ColorHelper.Argb.getArgb(255,255,255,255));
+            context.fill(10, 31 + (i * 18), 195 + 10 + 45, 35 + (i * 18) + 10, ColorHelper.Argb.getArgb(150,155,22,217));
+            context.fill(10, 31 + (i * 18), 10 + MathHelper.floor((195 + 45) * ratio), (35 + (i * 18) + 10), ColorHelper.Argb.getArgb(150,100,65,165));
+            context.drawTextWithShadow(minecraftClient.textRenderer, Text.literal((1 + i + altOffset) + ": ").append(item.getName()), 15, 34 + (i * 18), ColorHelper.Argb.getArgb(255,255,255,255));
 
             Text percentage = Text.literal(MathHelper.floor(ratio * 100) + " %");
-            DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, percentage, 195 + 10 + 42 - minecraftClient.textRenderer.getWidth(percentage), 34 + (i * 18), ColorHelper.Argb.getArgb(255,255,255,255));
+            context.drawTextWithShadow(minecraftClient.textRenderer, percentage, 195 + 10 + 42 - minecraftClient.textRenderer.getWidth(percentage), 34 + (i * 18), ColorHelper.Argb.getArgb(255,255,255,255));
 
             i++;
         }
 
     }
 
-    private void renderTeams(MatrixStack matrixStack) {
+    private void renderTeams(DrawContext context) {
         if (ItemShuffle.getInstance().getSettings().teamShowType == TeamData.Show.NONE) return;
 
-        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal("Team Score: §7§o(Mode " + ItemShuffle.getInstance().getSettings().itemType.name() + ")"), 10, 20, ColorHelper.Argb.getArgb(255,255,255,255));
+        context.drawTextWithShadow(minecraftClient.textRenderer, Text.literal("Team Score: §7§o(Mode " + ItemShuffle.getInstance().getSettings().itemType.name() + ")"), 10, 20, ColorHelper.Argb.getArgb(255,255,255,255));
 
         for (int i = 0; i < teamData.size(); i++) {
-            DrawableHelper.fill(matrixStack, 10, 31 + (i * 18), 195 + 10 + 45, 35 + (i * 18) + 10, ColorHelper.Argb.getArgb(70,0,0,0));
+            context.fill(10, 31 + (i * 18), 195 + 10 + 45, 35 + (i * 18) + 10, ColorHelper.Argb.getArgb(70,0,0,0));
             TeamData data;
             try {
                 data = teamData.get(i);
@@ -109,12 +108,12 @@ public class HudRender {
                 item = data.completed ? "§a " + name + " §r§2✔" : "§f " + name;
             }
 
-            DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal("§" + data.color + data.name + "§r §7[" + data.players + "]§r: " + score + item), 15, 34 + (i * 18), ColorHelper.Argb.getArgb(255,255,255,255));
+            context.drawTextWithShadow(minecraftClient.textRenderer, Text.literal("§" + data.color + data.name + "§r §7[" + data.players + "]§r: " + score + item), 15, 34 + (i * 18), ColorHelper.Argb.getArgb(255,255,255,255));
 
         }
     }
 
-    private void renderItem(MatrixStack matrixStack) {
+    private void renderItem(DrawContext context) {
         if (item == null) {
             return;
         }
@@ -126,16 +125,16 @@ public class HudRender {
         } else {
             text = Text.literal("§7Your " + i + ": §f§l" + name);
         }
-        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, text, 10, 106, ColorHelper.Argb.getArgb(255,255,255,255));
+        context.drawTextWithShadow(minecraftClient.textRenderer, text, 10, 106, ColorHelper.Argb.getArgb(255,255,255,255));
     }
 
-    private void renderOtherItems(MatrixStack matrixStack) {
+    private void renderOtherItems(DrawContext context) {
         if (items == null || items.size() == 0) {
             return;
         }
         String i = ItemShuffle.getInstance().getSettings().blockMode ? "blocks" : "items";
-        DrawableHelper.fill(matrixStack, 10, 103, 195 + 10 + 45, 106 + (10* items.size()) +10, ColorHelper.Argb.getArgb(70,0,0,0));
-        DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, Text.literal("§7§oOther player " + i + ":"), 15, 106, ColorHelper.Argb.getArgb(255,255,255,255));
+        context.fill(10, 103, 195 + 10 + 45, 106 + (10* items.size()) +10, ColorHelper.Argb.getArgb(70,0,0,0));
+        context.drawTextWithShadow(minecraftClient.textRenderer, Text.literal("§7§oOther player " + i + ":"), 15, 106, ColorHelper.Argb.getArgb(255,255,255,255));
         AtomicInteger y = new AtomicInteger(116);
         items.forEach((player, pair) -> {
             String name = TranslationStorage.getInstance().get(pair.getLeft().getTranslationKey());
@@ -149,7 +148,7 @@ public class HudRender {
             } else {
                 text = Text.literal("§7" + player + ": §b" + pair.getRight());
             }
-            DrawableHelper.drawTextWithShadow(matrixStack, minecraftClient.textRenderer, text, 15, y.getAndAdd(10), ColorHelper.Argb.getArgb(255,255,255,255));
+            context.drawTextWithShadow(minecraftClient.textRenderer, text, 15, y.getAndAdd(10), ColorHelper.Argb.getArgb(255,255,255,255));
         });
     }
 

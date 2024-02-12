@@ -25,7 +25,7 @@ import java.util.UUID;
 
 public class ItemShuffle implements ModInitializer {
 
-    public static String MC_VERSION = "1.19";
+    public static String MC_VERSION = "1.20";
     private static ItemShuffle instance;
     private static final Logger logger = LogManager.getLogger();
     private MinecraftServer server;
