@@ -27,7 +27,7 @@ public class PlayerManager {
     private final Map<UUID, ItemShufflePlayer> players;
     private final Map<String, ItemShuffleTeam> teams;
     private static final char[] TEAM_COLORS = {'9', '2', 'e', 'c', '5', 'b', 'd', '6'};
-    private static final String[] TEAM_NAMES = {"BLUE", "GREEN", "YELLOW", "RED", "PURPLE", "AQUA", "PINK", "GOLD"};
+    public static final String[] TEAM_NAMES = {"BLUE", "GREEN", "YELLOW", "RED", "PURPLE", "AQUA", "PINK", "GOLD"};
 
     public PlayerManager() {
         this.players = new HashMap<>();
@@ -93,6 +93,10 @@ public class PlayerManager {
     }
 
     public void autoTeams(int size) throws Exception {
+        autoTeams(size, true);
+    }
+
+    public void autoTeams(int size, boolean joinMsg) throws Exception {
         if (size > 4) throw new Exception("Team size is limited to 4!");
         MutableText text = Text.literal("§7Created §b" + size + " §7teams:");
         teams.clear();
@@ -105,7 +109,7 @@ public class PlayerManager {
             t.setFriendlyFireAllowed(false);
             ItemShuffleTeam team = new ItemShuffleTeam(n, c);
             teams.put(n, team);
-            text.append(Text.literal(" §" + c + "§nJOIN " + n + "§r").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle teams join " + n))));
+            if (joinMsg) text.append(Text.literal(" §" + c + "§nJOIN " + n + "§r").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle teams join " + n))));
         }
         ItemShuffle.getInstance().broadcast(text);
     }
@@ -317,7 +321,7 @@ public class PlayerManager {
     }
 
     public void updateTimers(int color) {
-        if (ItemShuffle.getInstance().getSettings().showTimers) {
+        if (ItemShuffle.getInstance().getSettings().showTimers && ItemShuffle.getInstance().getSettings().gameType != GameType.BOARD) {
             players.values().forEach(player -> player.updateTimer(color));
         }
     }
@@ -369,5 +373,17 @@ public class PlayerManager {
 
     public void hideItems() {
         players.values().forEach(ItemShufflePlayer::hideItem);
+    }
+
+    public void initBoards(int size, List<Item> board) {
+        players.values().forEach(p -> p.sendBoard(size, board));
+    }
+
+    public void setBoardStatus(List<Character> status) {
+        players.values().forEach(p -> p.sendBoardStatus(status));
+    }
+
+    public void hideBoards() {
+        players.values().forEach(ItemShufflePlayer::hideBoard);
     }
 }

@@ -7,6 +7,7 @@ import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ItemManager {
 
@@ -14,6 +15,9 @@ public class ItemManager {
     private final PhaseManager phaseManager;
 
     private final List<Item> runQueue;
+    public List<Item> boardItems;
+    public Set<Item> completedBoardItems;
+    public List<Character> boardStatus;
 
     public ItemManager() throws IOException, ParseException {
         votingQueueItems = new HashMap<>();
@@ -93,5 +97,34 @@ public class ItemManager {
 
     public List<Item> getRunItemList() {
         return runQueue;
+    }
+
+    public List<Item> createBoard(int size) {
+        this.boardItems = Arrays.asList(new Item[size*size]);
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                boolean found = false;
+                int t = 0;
+                while (!found) {
+                    Item item = phaseManager.getItem();
+                    if (!boardItems.contains(item) || t > 30) {
+                        boardItems.set(i*size+j, item);
+                        found = true;
+                    }
+                    t++;
+                }
+            }
+        }
+        completedBoardItems = new HashSet<>();
+        boardStatus = Arrays.asList(new Character[size*size]);
+        return boardItems;
+    }
+
+    public Set<Item> getCompletableBoardItems() {
+        return boardItems.stream().filter(item -> !completedBoardItems.contains(item)).collect(Collectors.toSet());
+    }
+
+    public void increaseRounds(double b) {
+        phaseManager.increaseRounds(b);
     }
 }

@@ -76,6 +76,10 @@ public class ItemShuffleClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(TEAM_DATA, ((client, handler, buf, responseSender) -> hudRender.setTeamData(buf)));
         ClientPlayNetworking.registerGlobalReceiver(OTHER_ITEMS, ((client, handler, buf, responseSender) -> hudRender.setOtherItems(buf)));
 
+        ClientPlayNetworking.registerGlobalReceiver(INIT_BOARD, (client, handler, buf, responseSender) -> hudRender.initBoard(buf));
+        ClientPlayNetworking.registerGlobalReceiver(BOARD_SET_STATUS, (client, handler, buf, responseSender) -> hudRender.setBoardStatus(buf));
+        ClientPlayNetworking.registerGlobalReceiver(HIDE_BOARD, (client, handler, buf, responseSender) -> hudRender.hideBoard());
+
         ClientPlayNetworking.registerGlobalReceiver(SETTING_SYNC, (client, handler, buf, responseSender) -> {
             ItemShuffle.getInstance().setSettings(new GameSettings(buf));
             ItemShuffle.getLogger().info("Client settings updated");

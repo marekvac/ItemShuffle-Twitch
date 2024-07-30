@@ -6,13 +6,22 @@ import me.marcuscz.itemshuffle.client.voting.VotingClient;
 import me.marcuscz.itemshuffle.client.voting.VotingItem;
 import me.marcuscz.itemshuffle.game.GameType;
 import me.marcuscz.itemshuffle.game.ItemGenType;
+import net.fabricmc.loader.impl.gui.FabricGuiEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.resource.language.TranslationStorage;
+import net.minecraft.client.resource.metadata.GuiResourceMetadata;
+import net.minecraft.client.texture.TextureManager;
+import net.minecraft.data.client.TextureKey;
+import net.minecraft.data.client.TextureMap;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
@@ -21,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class HudRender {
 
@@ -37,8 +47,39 @@ public class HudRender {
     private ArrayList<TeamData> teamData = new ArrayList<>();
     private boolean showTeamData = false;
     private boolean showOtherItems = false;
+    public BoardRender boardRender;
+
+    public void initBoard(PacketByteBuf buf) {
+        int size = buf.readInt();
+        boardRender = new BoardRender(size);
+        List<Item> items = new ArrayList<>();
+        for (int i = 0; i < size*size; i++) {
+            items.add(buf.readItemStack().getItem());
+        }
+        boardRender.setItems(items);
+    }
+
+    public void hideBoard() {
+        boardRender = null;
+    }
+
+    public void setBoardStatus(PacketByteBuf buf) {
+        List<Character> status = new ArrayList<>();
+        for (int i = 0; i < boardRender.size*boardRender.size; i++) {
+            Character c = buf.readChar();
+            if (c == '\0') c = null;
+            status.add(c);
+        }
+        boardRender.status = status;
+    }
+
+    public void renderBoard(DrawContext context) {
+        if (boardRender == null) return;
+        boardRender.draw(context);
+    }
 
     public void renderTimer(DrawContext context, float tickDelta) {
+        renderBoard(context);
         renderVoting(context);
         if (showItem) {
             if (ItemShuffle.getInstance().getSettings().gameType != GameType.TEAM && showOtherItems && minecraftClient.options.playerListKey.isPressed()) {

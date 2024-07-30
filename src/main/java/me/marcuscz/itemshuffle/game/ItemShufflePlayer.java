@@ -85,6 +85,8 @@ public class ItemShufflePlayer {
         if (completed) return;
 
         if (checkCompleted()) {
+            if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD) return;
+
             if (ItemShuffle.getInstance().getSettings().gameType != GameType.TEAM) {
                 if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
                     item = itemQueue.poll();
@@ -111,7 +113,22 @@ public class ItemShufflePlayer {
     }
 
     private boolean checkCompleted() {
-        boolean c = false;
+        if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD) {
+            for (Item i : GameManager.getInstance().getItemManager().getCompletableBoardItems()) {
+                if (checkItem(i)) {
+                    GameManager.getInstance().completeBoardItem(i, this);
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return checkItem(this.item);
+        }
+
+    }
+
+    private boolean checkItem(Item item) {
+        boolean c;
         if (ItemShuffle.getInstance().getSettings().blockMode) {
             c = player.getSteppingBlockState().getBlock().asItem() == item;
         } else {
@@ -292,6 +309,30 @@ public class ItemShufflePlayer {
             return;
         }
         ServerPlayNetworking.send(player, GAME_STOP, PacketByteBufs.empty());
+    }
+
+    public void sendBoard(int size, List<Item> board) {
+        ItemShuffle.getLogger().info("pre send board");
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeInt(size);
+        for (Item item : board) {
+            buf.writeItemStack(new ItemStack(item));
+        }
+        ServerPlayNetworking.send(player, INIT_BOARD, buf);
+        ItemShuffle.getLogger().info("send board");
+    }
+
+    public void sendBoardStatus(List<Character> status) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        for (Character character : status) {
+            if (character == null) buf.writeChar('\0');
+            else buf.writeChar(character);
+        }
+        ServerPlayNetworking.send(player, BOARD_SET_STATUS, buf);
+    }
+
+    public void hideBoard() {
+        ServerPlayNetworking.send(player, HIDE_BOARD, PacketByteBufs.empty());
     }
 
     public ServerPlayerEntity getPlayer() {

@@ -1,6 +1,8 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
+import me.marcuscz.itemshuffle.client.BoardRender;
+import net.minecraft.item.Item;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Style;
@@ -10,6 +12,7 @@ import net.minecraft.util.math.MathHelper;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
+import java.util.List;
 
 public class GameManager {
 
@@ -55,6 +58,23 @@ public class GameManager {
             return true;
         }
 
+        if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD && playerManager.getTeams().isEmpty()) {
+            if (ItemShuffle.getInstance().getServer().getPlayerManager().getPlayerList().size() > 4) {
+                ItemShuffle.getInstance().broadcast("§cYou need to manually specify teams!");
+                return true;
+            }
+            try {
+                playerManager.autoTeams(ItemShuffle.getInstance().getServer().getPlayerManager().getPlayerList().size(), false);
+                for (int i = 0; i < ItemShuffle.getInstance().getServer().getPlayerManager().getPlayerList().size(); i++) {
+                    playerManager.joinPlayer(PlayerManager.TEAM_NAMES[i], ItemShuffle.getInstance().getServer().getPlayerManager().getPlayerList().get(i));
+                }
+            } catch (Exception e) {
+                ItemShuffle.getInstance().broadcast("§cFailed to auto create teams for board. Create teams manually.");
+                e.printStackTrace();
+                return true;
+            }
+        }
+
         nextRound();
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
             playerManager.startVotingClients();
@@ -79,6 +99,7 @@ public class GameManager {
             active = false;
             playerManager.hideTimers();
             playerManager.hideItems();
+            if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD) playerManager.hideBoards();
             if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
                 playerManager.stopVotingClients();
             }
@@ -119,38 +140,58 @@ public class GameManager {
 
     private void nextRound() {
         playerManager.refreshPlayers();
-        time = ItemShuffle.getInstance().getSettings().time;
-        currentTime = time;
+        if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD) {
+            time = -1;
+            currentTime = time;
+            itemMsgSent = true;
+            paused = pausedDueFail = false;
+            timesUp = false;
 
-        if (ItemShuffle.getInstance().getSettings().itemType != ItemGenType.RUN) {
-            itemManager.nextRound(pausedDueFail ? 0.5 : 1);
-            if (PlayerManager.teamMode()) {
-                itemManager.getRandomItemsForTeams(playerManager.getTeams().values());
-            } else {
-                itemManager.getRandomItemsForPlayers(playerManager.getPlayers().values());
-            }
+            reRollBoard(true);
         } else {
-            playerManager.setItemQueues(itemManager.createRunQueue(RUN_SIZE));
-        }
+            time = ItemShuffle.getInstance().getSettings().time;
+            currentTime = time;
 
-        itemMsgSent = false;
-        paused = pausedDueFail = false;
-        timesUp = false;
-        playerManager.updateTimers();
-        if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
-            playerManager.createNewVotes(itemManager);
-        }
-        if (ItemShuffle.getInstance().getSettings().showItems) {
-            playerManager.showItems();
-            playerManager.refreshOtherItems(true);
-        }
-        if (ItemShuffle.getInstance().getSettings().gameType == GameType.TEAM) {
-            playerManager.refreshTeamData(true);
+            if (ItemShuffle.getInstance().getSettings().itemType != ItemGenType.RUN) {
+                itemManager.nextRound(pausedDueFail ? 0.5 : 1);
+                if (PlayerManager.teamMode()) {
+                    itemManager.getRandomItemsForTeams(playerManager.getTeams().values());
+                } else {
+                    itemManager.getRandomItemsForPlayers(playerManager.getPlayers().values());
+                }
+            } else {
+                playerManager.setItemQueues(itemManager.createRunQueue(RUN_SIZE));
+            }
+
+            itemMsgSent = false;
+            paused = pausedDueFail = false;
+            timesUp = false;
+            playerManager.updateTimers();
+            if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
+                playerManager.createNewVotes(itemManager);
+            }
+            if (ItemShuffle.getInstance().getSettings().showItems) {
+                playerManager.showItems();
+                playerManager.refreshOtherItems(true);
+            }
+            if (ItemShuffle.getInstance().getSettings().gameType == GameType.TEAM) {
+                playerManager.refreshTeamData(true);
+            }
         }
     }
 
+    public boolean reRollBoard(boolean start) {
+        if (ItemShuffle.getInstance().getSettings().gameType != GameType.BOARD || !start && !active) return false;
+
+        List<Item> boardItems = itemManager.createBoard(ItemShuffle.getInstance().getSettings().boardSize);
+        playerManager.initBoards(ItemShuffle.getInstance().getSettings().boardSize, boardItems);
+        playerManager.getPlayers().values().forEach(p -> p.setCompleted(false));
+        itemManager.increaseRounds(1);
+        return true;
+    }
+
     public boolean skip() {
-        if (!active || ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
+        if (!active || ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN || ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD) {
             return false;
         }
         endRound(true);
@@ -224,6 +265,55 @@ public class GameManager {
         return instance;
     }
 
+    public void completeBoardItem(Item item, ItemShufflePlayer player) {
+        int n = itemManager.boardItems.indexOf(item);
+        if (n == -1) {
+            ItemShuffle.getLogger().error("completeBoardItem: item is not in list, but it should be");
+            return;
+        }
+        ItemShuffleTeam team = playerManager.getPlayersTeam(player.getUuid());
+        if (team == null) {
+            return;
+        }
+        ItemShuffle.getInstance().broadcast("§7Team §" + team.getColor() + team.getName() + "§7 found item §f" + item.getName().getString());
+        itemManager.completedBoardItems.add(item);
+        itemManager.boardStatus.set(n, team.getColor());
+        playerManager.setBoardStatus(itemManager.boardStatus);
+
+        if (checkBoardStatus(itemManager.boardStatus)) {
+            ItemShuffle.getInstance().broadcast("§7Team §" + team.getColor() + team.getName() + "§7 has won!");
+            pausedDueFail = true;
+            pause();
+        }
+    }
+
+    public boolean checkBoardStatus(List<Character> status) {
+        for (int i = 0; i < ItemShuffle.getInstance().getSettings().boardSize; i++) {
+            for (int j = 0; j < ItemShuffle.getInstance().getSettings().boardSize; j++) {
+                Character s = status.get(i*ItemShuffle.getInstance().getSettings().boardSize + j);
+                if (s == null) continue;
+                // 0, -1 ; 1, -1 ; 1, 0 ; 1 , 1
+                int t = ItemShuffle.getInstance().getSettings().boardTarget;
+                if (checkDir(status, s, i, j, 0,-1,1) >= t || checkDir(status, s, i, j, 1, -1, 1) >= t || checkDir(status, s, i, j, 1, 0, 1) >= t || checkDir(status, s, i, j, 1, 1, 1) >= t) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public int checkDir(List<Character> status, Character s, int x, int y, int dx, int dy, int n) {
+        if (getListItem(status, x+dx, y+dy) != s) return n;
+        return checkDir(status, s, x+dx, y+dy, dx, dy, n+1);
+    }
+
+    private Character getListItem(List<Character> status, int x, int y) {
+        if (x < 0 || x >= ItemShuffle.getInstance().getSettings().boardSize || y < 0 || y >= ItemShuffle.getInstance().getSettings().boardSize) {
+            return null;
+        }
+        return status.get(x*ItemShuffle.getInstance().getSettings().boardSize + y);
+    }
+
     public void tick(MinecraftServer minecraftServer) {
         if (!active || paused) {
             return;
@@ -265,7 +355,7 @@ public class GameManager {
 
 
             // <= 10 seconds remain
-            if (currentTime <= 200) {
+            if (currentTime <= 200 && currentTime > 0) {
                 if (!timesUp) {
                     timesUp = true;
                     playerManager.updateTimers(ColorHelper.Argb.getArgb(150,170,50,50));

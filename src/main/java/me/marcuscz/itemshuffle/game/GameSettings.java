@@ -18,6 +18,8 @@ public class GameSettings {
     public boolean debug = false;
     public TeamData.Show teamShowType = TeamData.Show.FULL;
     public boolean blockMode = false;
+    public int boardSize = 3;
+    public int boardTarget = 3;
 
     public GameSettings() {
 
@@ -36,6 +38,8 @@ public class GameSettings {
         debug = buf.readBoolean();
         teamShowType = buf.readEnumConstant(TeamData.Show.class);
         blockMode = buf.readBoolean();
+        boardSize = buf.readInt();
+        boardTarget = buf.readInt();
     }
 
     @Override
@@ -53,6 +57,8 @@ public class GameSettings {
                 ", debug=" + debug +
                 ", teamShowType=" + teamShowType +
                 ", blockMode=" + blockMode +
+                ", boardSize=" + boardSize +
+                ", boardTarget=" + boardTarget +
                 '}';
     }
 
@@ -74,6 +80,8 @@ public class GameSettings {
         buf.writeBoolean(debug);
         buf.writeEnumConstant(teamShowType);
         buf.writeBoolean(blockMode);
+        buf.writeInt(boardSize);
+        buf.writeInt(boardTarget);
         return buf;
     }
 }

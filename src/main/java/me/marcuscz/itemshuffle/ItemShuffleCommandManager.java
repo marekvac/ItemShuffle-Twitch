@@ -4,14 +4,12 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import me.marcuscz.itemshuffle.game.GameManager;
-import me.marcuscz.itemshuffle.game.ItemManager;
-import me.marcuscz.itemshuffle.game.ItemShuffleTeam;
-import me.marcuscz.itemshuffle.game.PlayerManager;
+import me.marcuscz.itemshuffle.game.*;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.EntitySelector;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -35,6 +33,7 @@ public class ItemShuffleCommandManager {
                     .then(literal("pause").executes(this::pause))
                     .then(literal("resume").executes(this::resume))
                     .then(literal("skip").executes(this::skip))
+                    .then(literal("reroll").executes(this::reroll))
                     .then(literal("showrunitems").executes(this::printItemQueue))
                     .then(literal("teams")
                             .then(literal("list").executes(this::listTeams))
@@ -68,9 +67,39 @@ public class ItemShuffleCommandManager {
                     )
             );
             dispatcher.register(literal("skip").executes(this::skipPlayerItem));
-            dispatcher.register(literal("whatitem").then(argument("player", EntityArgumentType.player()).executes(this::whatItemPlayerHave)));
+            dispatcher.register(literal("whatitem")/*.then(argument("player", EntityArgumentType.player()).executes(this::whatItemPlayerHave))*/.then(argument("n", IntegerArgumentType.integer()).executes(this::whatBoardItem)));
         });
         ItemShuffle.getLogger().info("Registered commands!");
+    }
+
+    private int reroll(CommandContext<ServerCommandSource> ctx) {
+        if (ItemShuffle.getInstance().getSettings().gameType != GameType.BOARD) return 1;
+        if (!GameManager.isActive()) {
+            ctx.getSource().sendError(Text.literal("§cGame is not running"));
+            return 1;
+        }
+        if (!GameManager.getInstance().reRollBoard(false)) {
+            ctx.getSource().sendError(Text.literal("§cInvalid game type"));
+            return 1;
+        }
+        ctx.getSource().sendMessage(Text.literal("§7Board items re-rolled."));
+        return 1;
+    }
+
+    private int whatBoardItem(CommandContext<ServerCommandSource> ctx) {
+        if (ItemShuffle.getInstance().getSettings().gameType != GameType.BOARD) return 1;
+        if (!GameManager.isActive()) {
+            ctx.getSource().sendError(Text.literal("§cGame is not running"));
+            return 1;
+        }
+        int n = ctx.getArgument("n", Integer.class);
+        if (n > ItemShuffle.getInstance().getSettings().boardSize*ItemShuffle.getInstance().getSettings().boardSize || n < 1) {
+            ctx.getSource().sendError(Text.literal("§cInvalid number"));
+            return 1;
+        }
+        Item i = GameManager.getInstance().getItemManager().boardItems.get(n-1);
+        ctx.getSource().sendMessage(Text.literal("§7Item at " + n + ": §f" + i.getName().getString()));
+        return 1;
     }
 
     private int start(CommandContext<ServerCommandSource> ctx) {
