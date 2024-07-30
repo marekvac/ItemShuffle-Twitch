@@ -21,8 +21,8 @@ public class BoardRender {
     {{
         put('9', ColorHelper.Argb.getArgb(100, 0,0,255));
         put('2', ColorHelper.Argb.getArgb(100,0,255,0));
-        put('e', ColorHelper.Argb.getArgb(100,255,0,0));
-        put('c', ColorHelper.Argb.getArgb(100,255,255,0));
+        put('c', ColorHelper.Argb.getArgb(100,255,0,0));
+        put('e', ColorHelper.Argb.getArgb(100,255,255,0));
     }};
 
     public int size;
