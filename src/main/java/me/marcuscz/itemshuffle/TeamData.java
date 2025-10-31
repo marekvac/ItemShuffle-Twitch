@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registries;
 
 public class TeamData {
 
@@ -24,7 +25,7 @@ public class TeamData {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeString(name);
         buf.writeChar(color);
-        buf.writeItemStack(new ItemStack(item));
+        buf.writeIdentifier(Registries.ITEM.getId(item));
         buf.writeInt(runScore);
         buf.writeInt(fails);
         buf.writeInt(players);
@@ -48,7 +49,7 @@ public class TeamData {
         TeamData data = new TeamData();
         data.name = buf.readString();
         data.color = buf.readChar();
-        data.item = buf.readItemStack().getItem();
+        data.item = Registries.ITEM.get(buf.readIdentifier());
         data.runScore = buf.readInt();
         data.fails = buf.readInt();
         data.players = buf.readInt();

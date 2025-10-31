@@ -1,12 +1,16 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
+import me.marcuscz.itemshuffle.NetworkingConstants;
 import me.marcuscz.itemshuffle.TeamData;
+import me.marcuscz.itemshuffle.networking.GenericPayload;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registries;
+import net.minecraft.scoreboard.ScoreHolder;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -109,7 +113,7 @@ public class PlayerManager {
             t.setFriendlyFireAllowed(false);
             ItemShuffleTeam team = new ItemShuffleTeam(n, c);
             teams.put(n, team);
-            if (joinMsg) text.append(Text.literal(" §" + c + "§nJOIN " + n + "§r").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle teams join " + n))));
+            if (joinMsg) text.append(Text.literal(" §" + c + "§nJOIN " + n + "§r").setStyle(Style.EMPTY.withClickEvent(new ClickEvent.RunCommand("/itemshuffle teams join " + n))));
         }
         ItemShuffle.getInstance().broadcast(text);
     }
@@ -124,8 +128,13 @@ public class PlayerManager {
         ItemShufflePlayer player1 = new ItemShufflePlayer(player);
         team.addPlayer(player1);
         player1.setTeamName(team.getColor());
-        server.getScoreboard().clearPlayerTeam(player.getName().getString());
-        server.getScoreboard().addPlayerToTeam(player.getName().getString(), server.getScoreboard().getTeam(team.getName()));
+        ScoreHolder scoreHolder = ScoreHolder.fromProfile(player.getGameProfile());
+        var scoreboard = server.getScoreboard();
+        var scoreTeam = scoreboard.getScoreHolderTeam(scoreHolder.getNameForScoreboard());
+        if (scoreTeam != null) {
+            scoreboard.removeScoreHolderFromTeam(scoreHolder.getNameForScoreboard(), scoreTeam);
+        }
+        scoreboard.addScoreHolderToTeam(scoreHolder.getNameForScoreboard(), server.getScoreboard().getTeam(team.getName()));
         ItemShuffle.getInstance().broadcast("§7Player §f" + player.getName().getString() + " §7joined team §" + team.getColor() + team.getName());
     }
 
@@ -224,7 +233,8 @@ public class PlayerManager {
         } else {
             buf.writeInt(0);
         }
-        players.values().forEach(p -> p.sendTeamData(buf));
+        GenericPayload payload = new GenericPayload(NetworkingConstants.TEAM_DATA_ID, buf);
+        players.values().forEach(p -> p.sendPayload(payload));
     }
 
     public void refreshOtherItems(boolean show) {
@@ -234,14 +244,17 @@ public class PlayerManager {
             for (ItemShufflePlayer player : players.values()) {
                 buf.writeString(player.getPlayer().getName().getString());
                 if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN || ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
-                    buf.writeItemStack(new ItemStack(Items.AIR));
+//                    buf.writeItemStack(new ItemStack(Items.AIR));
+                    buf.writeIdentifier(Registries.ITEM.getId(Items.AIR));
                     buf.writeInt(player.getPoints());
                 } else {
                     if (player.getItem() != null) {
-                        buf.writeItemStack(new ItemStack(player.getItem()));
+//                        buf.writeItemStack(new ItemStack(player.getItem()));
+                        buf.writeIdentifier(Registries.ITEM.getId(player.getItem()));
                         buf.writeInt(player.isCompleted() ? 1 : 0);
                     } else {
-                        buf.writeItemStack(new ItemStack(Items.AIR));
+                        buf.writeIdentifier(Registries.ITEM.getId(Items.AIR));
+//                        buf.writeItemStack(new ItemStack(Items.AIR));
                         buf.writeInt(0);
                     }
                 }
@@ -249,7 +262,8 @@ public class PlayerManager {
         } else {
             buf.writeInt(0);
         }
-        players.values().forEach(p -> p.sendOtherItems(buf));
+        GenericPayload payload = new GenericPayload(NetworkingConstants.OTHER_ITEMS_ID, buf);
+        players.values().forEach(p -> p.sendPayload(payload));
     }
 
     public void broadcastScore(boolean onlyFailed) {
@@ -328,7 +342,7 @@ public class PlayerManager {
 
     public void updateTimers() {
 
-        int color = ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH ? ColorHelper.Argb.getArgb(150,100,65,165) : ColorHelper.Argb.getArgb(150,70,150,70);
+        int color = ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH ? ColorHelper.getArgb(150,100,65,165) : ColorHelper.getArgb(150,70,150,70);
         this.updateTimers(color);
     }
 

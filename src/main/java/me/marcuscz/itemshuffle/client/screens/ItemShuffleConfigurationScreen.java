@@ -4,9 +4,7 @@ import me.marcuscz.itemshuffle.ItemShuffle;
 import me.marcuscz.itemshuffle.TeamData;
 import me.marcuscz.itemshuffle.client.ItemShuffleClient;
 import me.marcuscz.itemshuffle.client.screens.widgets.ItemShuffleSliderWidget;
-import me.marcuscz.itemshuffle.game.GameSettings;
-import me.marcuscz.itemshuffle.game.GameType;
-import me.marcuscz.itemshuffle.game.ItemGenType;
+import me.marcuscz.itemshuffle.game.*;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -21,7 +19,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
     private final Screen parent;
     private final GameSettings settings = ItemShuffle.getInstance().getSettings();
     private boolean changes;
-    private int gameTypeIndex, itemTypeIndex, teamDataIndex;
+    private int gameTypeIndex, itemTypeIndex, teamDataIndex, itemDimensionIndex, showItemsIndex;
 
     public ItemShuffleConfigurationScreen(Screen parent) {
         super(Text.literal("ItemShuffle Options"));
@@ -29,6 +27,8 @@ public class ItemShuffleConfigurationScreen extends Screen {
         gameTypeIndex = GameType.getIndex(settings.gameType);
         itemTypeIndex = ItemGenType.getIndex(settings.itemType);
         teamDataIndex = TeamData.Show.getIndex(settings.teamShowType);
+        itemDimensionIndex = ItemGenDimension.getIndex(settings.itemGenDimension);
+        showItemsIndex = ItemShowType.getIndex(settings.showItemsMode);
     }
 
     protected void init() {
@@ -84,11 +84,30 @@ public class ItemShuffleConfigurationScreen extends Screen {
         itemTypeWidget.active = settings.gameType != GameType.TWITCH && settings.gameType != GameType.BOARD;
         this.addDrawableChild(itemTypeWidget);
 
+        ButtonWidget itemDimensionWidget = ButtonWidget.builder(
+                Text.literal("Generator Dimension: " + settings.itemGenDimension.toString()),
+                button -> {
+                    itemDimensionIndex++;
+                    if (itemDimensionIndex >= ItemGenDimension.values().length) {
+                        itemDimensionIndex = 0;
+                    }
+                    settings.itemGenDimension = ItemGenDimension.values()[itemDimensionIndex];
+                    button.setMessage(Text.literal("Generator Dimension: " + settings.itemGenDimension.toString()));
+                    changes = true;
+                }).dimensions(
+                this.width / 2 - 160,
+                200,
+                150,
+                20
+        ).build();
+        itemTypeWidget.active = settings.gameType != GameType.TWITCH && settings.gameType != GameType.BOARD;
+        this.addDrawableChild(itemDimensionWidget);
+
 
         ButtonWidget integrationSettings = ButtonWidget.builder(
                 Text.literal("Twitch Settings"),
                 button -> client.setScreen(new TwitchConfigurationScreen(this))
-        ).dimensions(this.width / 2 - 85, 200, 170, 20).build();
+        ).dimensions(this.width / 2 - 85, 225, 170, 20).build();
         integrationSettings.active = settings.gameType == GameType.TWITCH;
         this.addDrawableChild(integrationSettings);
 
@@ -200,10 +219,14 @@ public class ItemShuffleConfigurationScreen extends Screen {
         this.addDrawableChild(pauseOnFailWidget);
 
         ButtonWidget showItemWidget = ButtonWidget.builder(
-                Text.literal("Show Items: " + (settings.showItems ? "On" : "Off")),
+                Text.literal("Show Items: " + settings.showItemsMode.toString()),
                 button -> {
-                    settings.showItems = !settings.showItems;
-                    button.setMessage(Text.literal("Show Items: " + (settings.showItems ? "On" : "Off")));
+                    showItemsIndex++;
+                    if (showItemsIndex >= ItemShowType.values().length) {
+                        showItemsIndex = 0;
+                    }
+                    settings.showItemsMode = ItemShowType.values()[showItemsIndex];
+                    button.setMessage(Text.literal("Show Items: " + settings.showItemsMode.toString()));
                     changes = true;
                 }
         ).dimensions(
@@ -284,7 +307,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
     }
 
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+//        this.renderBackground(context, mouseX, mouseY, delta);
 
 
         context.drawTextWithShadow(this.textRenderer, "ItemShuffle settings", this.width / 2 - textRenderer.getWidth("ItemShuffle settings")/2, 10, 16777215);

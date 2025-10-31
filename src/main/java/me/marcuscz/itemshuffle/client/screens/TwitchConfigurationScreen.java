@@ -45,12 +45,12 @@ public class TwitchConfigurationScreen extends Screen {
         ).build();
         this.addDrawableChild(twitchEnabled);
 
-        twitchToken = new TextFieldWidget(this.textRenderer, this.width / 2 + 10, 80, 125, 20, Text.translatable("entropy.options.integrations.twitch.OAuthToken"));
+        twitchToken = new TextFieldWidget(this.textRenderer,  this.width / 2 - 125, 80, 250, 20, Text.literal("Twitch OAuth2 Token"));
         twitchToken.setMaxLength(64);
         twitchToken.setText(twitchSettings.authToken);
-        twitchToken.setRenderTextProvider((s, integer) -> OrderedText.styledForwardsVisitedString("*".repeat(s.length()), Style.EMPTY));
+        twitchToken.addFormatter((string, firstCharacterIndex) -> OrderedText.styledForwardsVisitedString("*".repeat(string.length()), Style.EMPTY));
         this.addDrawableChild(twitchToken);
-        twitchChannel = new TextFieldWidget(this.textRenderer, this.width / 2 + 10, 110, 125, 20, Text.translatable("entropy.options.integrations.twitch.channelName"));
+        twitchChannel = new TextFieldWidget(this.textRenderer, this.width / 2 - 125, 110, 250, 20, Text.literal("Twitch channel name"));
         twitchChannel.setText(twitchSettings.channel);
         this.addDrawableChild(twitchChannel);
 
@@ -67,10 +67,10 @@ public class TwitchConfigurationScreen extends Screen {
     }
 
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+//        this.renderBackground(context, mouseX, mouseY, delta);
 
-        context.drawTextWithShadow(this.textRenderer, tokenTranslatable, this.width / 2 - 10 - textRenderer.getWidth(tokenTranslatable), 86, 16777215);
-        context.drawTextWithShadow(this.textRenderer, channelTranslatable, this.width / 2 - 10 - textRenderer.getWidth(channelTranslatable), 116, 16777215);
+        context.drawTextWithShadow(this.textRenderer, tokenTranslatable, this.width / 2 - 135 - textRenderer.getWidth(tokenTranslatable), 86, 16777215);
+        context.drawTextWithShadow(this.textRenderer, channelTranslatable, this.width / 2 - 135 - textRenderer.getWidth(channelTranslatable), 116, 16777215);
 
         super.render(context, mouseX, mouseY, delta);
     }

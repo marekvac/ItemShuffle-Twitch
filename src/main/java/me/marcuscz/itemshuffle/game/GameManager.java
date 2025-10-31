@@ -1,14 +1,12 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
-import me.marcuscz.itemshuffle.client.BoardRender;
 import net.minecraft.item.Item;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.MathHelper;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
@@ -50,13 +48,19 @@ public class GameManager {
         if (active) {
             return false;
         }
+
+        ItemShuffle.logDebug("Starting game manager");
+
+        String type = ItemShuffle.ITEM_GEN_DIMENSION_TYPES.getOrDefault(ItemShuffle.getInstance().getSettings().itemGenDimension, "");
         try {
-            itemManager = new ItemManager();
+            itemManager = new ItemManager(type);
         } catch (IOException | ParseException e) {
             ItemShuffle.getInstance().broadcast("§4Failed to load items from config! Please check phases.json file.");
             e.printStackTrace();
             return true;
         }
+
+        ItemShuffle.logDebug("Item manager initialized");
 
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD && playerManager.getTeams().isEmpty()) {
             if (ItemShuffle.getInstance().getServer().getPlayerManager().getPlayerList().size() > 4) {
@@ -75,7 +79,12 @@ public class GameManager {
             }
         }
 
+        ItemShuffle.logDebug("Board condition checked");
+
         nextRound();
+
+        ItemShuffle.logDebug("next round initialized");
+
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
             playerManager.startVotingClients();
             playerManager.createNewVotes(itemManager);
@@ -90,6 +99,9 @@ public class GameManager {
         if (!disclaimer) {
             ItemShuffle.getInstance().broadcast("§7§oItemShuffle Twitch by MarcusCZ");
             disclaimer = true;
+        }
+        if (!type.isEmpty()) {
+            ItemShuffle.getInstance().broadcast("§e§oItem Generator Dimension is set to: §2§o" + type.toUpperCase());
         }
         return true;
     }
@@ -120,7 +132,7 @@ public class GameManager {
         paused = true;
         playerManager.hideTimers();
         playerManager.hideItems();
-        ItemShuffle.getInstance().broadcast(Text.literal("§6Game has been paused! ").append(Text.literal("§2§nResume").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/itemshuffle resume")))));
+        ItemShuffle.getInstance().broadcast(Text.literal("§6Game has been paused! ").append(Text.literal("§2§nResume").setStyle(Style.EMPTY.withClickEvent(new ClickEvent.RunCommand("/itemshuffle resume")))));
         return true;
     }
 
@@ -170,7 +182,7 @@ public class GameManager {
             if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
                 playerManager.createNewVotes(itemManager);
             }
-            if (ItemShuffle.getInstance().getSettings().showItems) {
+            if (ItemShuffle.getInstance().getSettings().showItemsMode != ItemShowType.OFF) {
                 playerManager.showItems();
                 playerManager.refreshOtherItems(true);
             }
@@ -358,7 +370,7 @@ public class GameManager {
             if (currentTime <= 200 && currentTime > 0) {
                 if (!timesUp) {
                     timesUp = true;
-                    playerManager.updateTimers(ColorHelper.Argb.getArgb(150,170,50,50));
+                    playerManager.updateTimers(ColorHelper.getArgb(150,170,50,50));
                 }
                 if (currentTime == 0) {
                     if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {

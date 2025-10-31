@@ -1,6 +1,7 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
+import me.marcuscz.itemshuffle.networking.GenericPayload;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.Item;
@@ -172,21 +173,14 @@ public class ItemShufflePlayer {
         if (player == null) {
             return;
         }
-//        String key = item.getTranslationKey();
         PacketByteBuf buf = PacketByteBufs.create();
-//        buf.writeString(key);
-        buf.writeItemStack(new ItemStack(item));
-        ServerPlayNetworking.send(player, ITEM_MESSAGES, buf);
+        buf.writeIdentifier(Registries.ITEM.getId(item));
+        ServerPlayNetworking.send(player, new GenericPayload(ITEM_MESSAGES_ID, buf));
     }
 
-    public void sendOtherItems(PacketByteBuf buf) {
+    public void sendPayload(GenericPayload payload) {
         if (player == null) return;
-        ServerPlayNetworking.send(player, OTHER_ITEMS, buf);
-    }
-
-    public void sendTeamData(PacketByteBuf buf) {
-        if (player == null) return;
-        ServerPlayNetworking.send(player, TEAM_DATA, buf);
+        ServerPlayNetworking.send(player, payload);
     }
 
     public void broadcastScore(boolean onlyFailed) {
@@ -217,7 +211,8 @@ public class ItemShufflePlayer {
         buf.writeInt(GameManager.getCurrentTime());
         buf.writeInt(GameManager.getTime());
         buf.writeInt(color);
-        ServerPlayNetworking.send(player, TIMER_SHOW, buf);
+        ServerPlayNetworking.send(player, new GenericPayload(TIMER_SHOW_ID, buf));
+//        ServerPlayNetworking.send(player, TIMER_SHOW, buf);
     }
 
     public void hideTimer() {
@@ -242,29 +237,29 @@ public class ItemShufflePlayer {
     }
 
     public static void hideTimerPlayer(ServerPlayerEntity player) {
-        ServerPlayNetworking.send(player, TIMER_HIDE, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new GenericPayload(TIMER_HIDE_ID, PacketByteBufs.empty()));
     }
 
     public static void sendGameStopped(ServerPlayerEntity player) {
-        ServerPlayNetworking.send(player, GAME_STOP, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new GenericPayload(GAME_STOP_ID, PacketByteBufs.empty()));
     }
 
     public static void showItemPlayer(ServerPlayerEntity player) {
-        ServerPlayNetworking.send(player, SHOW_ITEM, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new GenericPayload(SHOW_ITEM_ID, PacketByteBufs.empty()));
     }
 
     public static void hideItemPlayer(ServerPlayerEntity player) {
-        ServerPlayNetworking.send(player, HIDE_ITEM, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new GenericPayload(HIDE_ITEM_ID, PacketByteBufs.empty()));
     }
 
     public void sendCompletedItem() {
-        ServerPlayNetworking.send(player, COMPLETE_ITEM, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new GenericPayload(COMPLETE_ITEM_ID, PacketByteBufs.empty()));
     }
 
     // TWITCH CLIENT
 
     public void startVotingClient() {
-        ServerPlayNetworking.send(player, VOTING_INIT, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new GenericPayload(VOTING_INIT_ID, PacketByteBufs.empty()));
     }
 
     public void setTwitchEnabled(boolean twitchEnabled) {
@@ -280,35 +275,35 @@ public class ItemShufflePlayer {
             i++;
         }
         buf.writeIntArray(ids);
-        ServerPlayNetworking.send(player, NEXT_ROUND, buf);
+        ServerPlayNetworking.send(player, new GenericPayload(NEXT_ROUND_ID, buf));
     }
 
     public void askClientForWinner() {
         if (!twitchEnabled) {
             return;
         }
-        ServerPlayNetworking.send(player, VOTING_GET_WINNER, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new GenericPayload(VOTING_GET_WINNER_ID, PacketByteBufs.empty()));
     }
 
     public void pauseVotingClient() {
         if (!twitchEnabled) {
             return;
         }
-        ServerPlayNetworking.send(player, GAME_PAUSED, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new GenericPayload(GAME_PAUSED_ID, PacketByteBufs.empty()));
     }
 
     public void resumeVotingClient() {
         if (!twitchEnabled) {
             return;
         }
-        ServerPlayNetworking.send(player, GAME_RESUMED, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new GenericPayload(GAME_RESUMED_ID, PacketByteBufs.empty()));
     }
 
     public void stopVotingClient() {
         if (!twitchEnabled) {
             return;
         }
-        ServerPlayNetworking.send(player, GAME_STOP, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new GenericPayload(GAME_STOP_ID, PacketByteBufs.empty()));
     }
 
     public void sendBoard(int size, List<Item> board) {
@@ -316,9 +311,10 @@ public class ItemShufflePlayer {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeInt(size);
         for (Item item : board) {
-            buf.writeItemStack(new ItemStack(item));
+//            buf.writeItemStack(new ItemStack(item));
+            buf.writeIdentifier(Registries.ITEM.getId(item));
         }
-        ServerPlayNetworking.send(player, INIT_BOARD, buf);
+        ServerPlayNetworking.send(player, new GenericPayload(INIT_BOARD_ID, buf));
         ItemShuffle.getLogger().info("send board");
     }
 
@@ -328,11 +324,11 @@ public class ItemShufflePlayer {
             if (character == null) buf.writeChar('\0');
             else buf.writeChar(character);
         }
-        ServerPlayNetworking.send(player, BOARD_SET_STATUS, buf);
+        ServerPlayNetworking.send(player, new GenericPayload(BOARD_SET_STATUS_ID, buf));
     }
 
     public void hideBoard() {
-        ServerPlayNetworking.send(player, HIDE_BOARD, PacketByteBufs.empty());
+        ServerPlayNetworking.send(player, new GenericPayload(HIDE_BOARD_ID, PacketByteBufs.empty()));
     }
 
     public ServerPlayerEntity getPlayer() {

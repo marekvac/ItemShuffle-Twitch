@@ -19,9 +19,9 @@ public class ItemManager {
     public Set<Item> completedBoardItems;
     public List<Character> boardStatus;
 
-    public ItemManager() throws IOException, ParseException {
+    public ItemManager(String type) throws IOException, ParseException {
         votingQueueItems = new HashMap<>();
-        phaseManager = new PhaseManager();
+        phaseManager = new PhaseManager(type);
         runQueue = new ArrayList<>();
     }
 

@@ -3,11 +3,9 @@ package me.marcuscz.itemshuffle.mixins;
 import me.marcuscz.itemshuffle.ItemShuffle;
 import net.minecraft.block.*;
 import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.DirectionProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Property;
+import net.minecraft.state.property.*;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,11 +20,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class BeehiveBlockMixin {
 
     @Shadow @Final public static IntProperty HONEY_LEVEL;
-    @Shadow @Final public static DirectionProperty FACING;
+    @Shadow @Final public static EnumProperty<Direction> FACING;
 
     private static final BooleanProperty HONEY_TAKEN = BooleanProperty.of("honey_taken");
 
-    @Redirect(method = "onUse", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;get(Lnet/minecraft/state/property/Property;)Ljava/lang/Comparable;"))
+    @Redirect(method = "onUseWithItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;get(Lnet/minecraft/state/property/Property;)Ljava/lang/Comparable;"))
     private Comparable injectedHoneyLevel(BlockState instance, Property property) {
         if (property.equals(HONEY_LEVEL) && instance.get(HONEY_TAKEN)) {
             return 5;

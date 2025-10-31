@@ -25,12 +25,18 @@ public class PhaseManager {
     private final List<ItemPhase> phases;
     private final List<PhaseItem> availableItems;
 
-    public PhaseManager() throws IOException, ParseException {
+    public PhaseManager(String type) throws IOException, ParseException {
+        if (type == null) {
+            type = "";
+        }
+        if (!type.isEmpty()) type = "-" + type;
         phases = new ArrayList<>();
         availableItems = new ArrayList<>();
 
+        ItemShuffle.getLogger().info("Loading phases file phases-" + ItemShuffle.MC_VERSION + (type.isEmpty() ? "" : type) + ".json");
+
         ItemShuffle.logDebug("Getting phases file");
-        File f = ItemShuffle.getPhasesFile();
+        File f = ItemShuffle.getPhasesFile(type);
 
         if (!f.getParentFile().getParentFile().exists()) {
             f.getParentFile().getParentFile().mkdir();
@@ -46,12 +52,12 @@ public class PhaseManager {
         }
 
         if (!f.exists()) {
-            copyModFile(container);
+            copyModFile(container, type);
         }
 
         ItemShuffle.logDebug("Got mod container");
 
-        Optional<Path> maybePath = container.get().findPath("phases-" + ItemShuffle.MC_VERSION + ".json");
+        Optional<Path> maybePath = container.get().findPath("phases-" + ItemShuffle.MC_VERSION + type + ".json");
         if (maybePath.isEmpty()) {
             throw new FileNotFoundException("Failed to get phases file from mod container");
         }
@@ -73,7 +79,7 @@ public class PhaseManager {
         JSONObject obj = (JSONObject) jsonParser.parse(reader);
         if (!obj.containsKey("version")) {
             reader.close();
-            copyModFile(container);
+            copyModFile(container, type);
             reader = new FileReader(f);
             obj = (JSONObject) jsonParser.parse(reader);
             ItemShuffle.getLogger().info("Updated phases.json file!");
@@ -84,7 +90,7 @@ public class PhaseManager {
             JSONObject modVersion = (JSONObject) objMod.get("version");
             if (!((boolean) version.get("custom")) && ((double) version.get("file")) < ((double) modVersion.get("file"))) {
                 reader.close();
-                copyModFile(container);
+                copyModFile(container, type);
                 reader = new FileReader(f);
                 obj = (JSONObject) jsonParser.parse(reader);
                 ItemShuffle.getLogger().info("Updated phases.json file!");
@@ -106,11 +112,11 @@ public class PhaseManager {
         roundsLasted = 0;
     }
 
-    private void copyModFile(Optional<ModContainer> container) throws IOException {
+    private void copyModFile(Optional<ModContainer> container, String type) throws IOException {
 
-        File f = ItemShuffle.getPhasesFile();
+        File f = ItemShuffle.getPhasesFile(type);
         OutputStream os = new FileOutputStream(f);
-        Files.copy(container.get().getPath("phases-" + ItemShuffle.MC_VERSION + ".json"), os);
+        Files.copy(container.get().getPath("phases-" + ItemShuffle.MC_VERSION + type + ".json"), os);
         os.close();
     }
 
@@ -120,7 +126,7 @@ public class PhaseManager {
         ItemPhaseBuilder builder = new ItemPhaseBuilder();
         items.forEach(i -> {
             ItemShuffle.logDebug("Current item: " + i);
-            Identifier id = new Identifier((String) i);
+            Identifier id = Identifier.of((String) i);
             Item item = Registries.ITEM.get(id);
             builder.addItem(item);
         });
@@ -130,7 +136,7 @@ public class PhaseManager {
         JSONArray blocks = (JSONArray) phase.get("standing_only");
         ItemPhaseBuilder builder2 = new ItemPhaseBuilder();
         blocks.forEach(i -> {
-            Identifier id = new Identifier((String) i);
+            Identifier id = Identifier.of((String) i);
             Item item = Registries.ITEM.get(id);
             builder2.addItem(item);
         });

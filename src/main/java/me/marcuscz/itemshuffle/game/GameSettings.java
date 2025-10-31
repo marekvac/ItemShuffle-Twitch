@@ -14,12 +14,13 @@ public class GameSettings {
     public boolean showTimers = true;
     public boolean pauseOnFail = true;
     public boolean giveFood = true;
-    public boolean showItems = true;
+    public ItemShowType showItemsMode = ItemShowType.FULL;
     public boolean debug = false;
     public TeamData.Show teamShowType = TeamData.Show.FULL;
     public boolean blockMode = false;
     public int boardSize = 3;
     public int boardTarget = 3;
+    public ItemGenDimension itemGenDimension = ItemGenDimension.OFF;
 
     public GameSettings() {
 
@@ -34,12 +35,13 @@ public class GameSettings {
         showTimers = buf.readBoolean();
         pauseOnFail = buf.readBoolean();
         giveFood = buf.readBoolean();
-        showItems = buf.readBoolean();
+        showItemsMode = buf.readEnumConstant(ItemShowType.class);
         debug = buf.readBoolean();
         teamShowType = buf.readEnumConstant(TeamData.Show.class);
         blockMode = buf.readBoolean();
         boardSize = buf.readInt();
         boardTarget = buf.readInt();
+        itemGenDimension = buf.readEnumConstant(ItemGenDimension.class);
     }
 
     @Override
@@ -53,12 +55,13 @@ public class GameSettings {
                 ", showTimers=" + showTimers +
                 ", pauseOnFail=" + pauseOnFail +
                 ", giveFood=" + giveFood +
-                ", showItems=" + showItems +
+                ", showItems=" + showItemsMode +
                 ", debug=" + debug +
                 ", teamShowType=" + teamShowType +
                 ", blockMode=" + blockMode +
                 ", boardSize=" + boardSize +
                 ", boardTarget=" + boardTarget +
+                ", itemGenDimension=" + itemGenDimension +
                 '}';
     }
 
@@ -76,12 +79,13 @@ public class GameSettings {
         buf.writeBoolean(showTimers);
         buf.writeBoolean(pauseOnFail);
         buf.writeBoolean(giveFood);
-        buf.writeBoolean(showItems);
+        buf.writeEnumConstant(showItemsMode);
         buf.writeBoolean(debug);
         buf.writeEnumConstant(teamShowType);
         buf.writeBoolean(blockMode);
         buf.writeInt(boardSize);
         buf.writeInt(boardTarget);
+        buf.writeEnumConstant(itemGenDimension);
         return buf;
     }
 }
