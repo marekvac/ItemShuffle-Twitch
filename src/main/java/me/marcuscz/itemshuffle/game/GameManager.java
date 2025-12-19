@@ -331,7 +331,7 @@ public class GameManager {
             return;
         }
 
-        currentTime--;
+        if (currentTime > 0) currentTime--;
 
         // Send item messages to players later, because networking is faster than broadcast
         if (!itemMsgSent && time - currentTime > 5) {
@@ -367,7 +367,7 @@ public class GameManager {
 
 
             // <= 10 seconds remain
-            if (currentTime <= 200 && currentTime > 0) {
+            if (currentTime <= 200 && currentTime >= 0) {
                 if (!timesUp) {
                     timesUp = true;
                     playerManager.updateTimers(ARGB.color(150,170,50,50));
