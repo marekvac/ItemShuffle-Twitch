@@ -1,8 +1,7 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
-import net.minecraft.item.Item;
-
+import net.minecraft.world.item.Item;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 

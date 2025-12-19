@@ -5,23 +5,20 @@ import me.marcuscz.itemshuffle.NetworkingConstants;
 import me.marcuscz.itemshuffle.TeamData;
 import me.marcuscz.itemshuffle.networking.GenericPayload;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.registry.Registries;
-import net.minecraft.scoreboard.ScoreHolder;
-import net.minecraft.scoreboard.Team;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.MathHelper;
-
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ARGB;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.ScoreHolder;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -48,8 +45,8 @@ public class PlayerManager {
             players.clear();
             teams.values().forEach(t -> players.putAll(t.getPlayers()));
         } else {
-            server.getPlayerManager().getPlayerList().forEach(player -> {
-                UUID uuid = player.getUuid();
+            server.getPlayerList().getPlayers().forEach(player -> {
+                UUID uuid = player.getUUID();
                 if (!players.containsKey(uuid)) {
                     players.put(uuid, new ItemShufflePlayer(player));
                 }
@@ -68,13 +65,13 @@ public class PlayerManager {
         teams.put(name, team);
     }
 
-    public void addPlayerToTeam(String teamName, ServerPlayerEntity player) throws Exception {
+    public void addPlayerToTeam(String teamName, ServerPlayer player) throws Exception {
         if (!teams.containsKey(teamName)) throw new Exception("Invalid team!");
         ItemShuffleTeam team = teams.get(teamName);
 
         AtomicBoolean inTeam = new AtomicBoolean(false);
         teams.forEach((s, t) -> {
-            if (t.hasPlayer(player.getUuid())) inTeam.set(true);
+            if (t.hasPlayer(player.getUUID())) inTeam.set(true);
         });
 
         if (inTeam.get()) throw new Exception("Player is already in some team!");
@@ -82,13 +79,13 @@ public class PlayerManager {
         team.addPlayer(new ItemShufflePlayer(player));
     }
 
-    public void removePlayerFromTeam(String teamName, ServerPlayerEntity player) throws Exception  {
+    public void removePlayerFromTeam(String teamName, ServerPlayer player) throws Exception  {
         if (!teams.containsKey(teamName)) throw new Exception("Invalid team!");
         ItemShuffleTeam team = teams.get(teamName);
 
-        if (!team.hasPlayer(player.getUuid())) throw new Exception("Player is not in this team!");
+        if (!team.hasPlayer(player.getUUID())) throw new Exception("Player is not in this team!");
 
-        team.removePlayer(player.getUuid());
+        team.removePlayer(player.getUUID());
     }
 
     public void removeTeam(String teamName) throws Exception {
@@ -102,39 +99,39 @@ public class PlayerManager {
 
     public void autoTeams(int size, boolean joinMsg) throws Exception {
         if (size > 4) throw new Exception("Team size is limited to 4!");
-        MutableText text = Text.literal("§7Created §b" + size + " §7teams:");
+        MutableComponent text = Component.literal("§7Created §b" + size + " §7teams:");
         teams.clear();
-        server.getScoreboard().getTeams().clear();
+        server.getScoreboard().getPlayerTeams().clear();
         for (int i = 0; i < size; i++) {
             char c = TEAM_COLORS[i];
             String n = TEAM_NAMES[i];
-            Team t = server.getScoreboard().addTeam(n);
-            t.setColor(Formatting.byCode(c));
-            t.setFriendlyFireAllowed(false);
+            PlayerTeam t = server.getScoreboard().addPlayerTeam(n);
+            t.setColor(ChatFormatting.getByCode(c));
+            t.setAllowFriendlyFire(false);
             ItemShuffleTeam team = new ItemShuffleTeam(n, c);
             teams.put(n, team);
-            if (joinMsg) text.append(Text.literal(" §" + c + "§nJOIN " + n + "§r").setStyle(Style.EMPTY.withClickEvent(new ClickEvent.RunCommand("/itemshuffle teams join " + n))));
+            if (joinMsg) text.append(Component.literal(" §" + c + "§nJOIN " + n + "§r").setStyle(Style.EMPTY.withClickEvent(new ClickEvent.RunCommand("/itemshuffle teams join " + n))));
         }
         ItemShuffle.getInstance().broadcast(text);
     }
 
-    public void joinPlayer(String teamName, ServerPlayerEntity player) throws Exception {
+    public void joinPlayer(String teamName, ServerPlayer player) throws Exception {
         if (!teams.containsKey(teamName)) throw new Exception("Invalid team!");
-        ItemShuffleTeam oldTeam = getPlayersTeam(player.getUuid());
+        ItemShuffleTeam oldTeam = getPlayersTeam(player.getUUID());
         if (oldTeam != null) {
-            oldTeam.removePlayer(player.getUuid());
+            oldTeam.removePlayer(player.getUUID());
         }
         ItemShuffleTeam team = teams.get(teamName);
         ItemShufflePlayer player1 = new ItemShufflePlayer(player);
         team.addPlayer(player1);
         player1.setTeamName(team.getColor());
-        ScoreHolder scoreHolder = ScoreHolder.fromProfile(player.getGameProfile());
+        ScoreHolder scoreHolder = ScoreHolder.fromGameProfile(player.getGameProfile());
         var scoreboard = server.getScoreboard();
-        var scoreTeam = scoreboard.getScoreHolderTeam(scoreHolder.getNameForScoreboard());
+        var scoreTeam = scoreboard.getPlayersTeam(scoreHolder.getScoreboardName());
         if (scoreTeam != null) {
-            scoreboard.removeScoreHolderFromTeam(scoreHolder.getNameForScoreboard(), scoreTeam);
+            scoreboard.removePlayerFromTeam(scoreHolder.getScoreboardName(), scoreTeam);
         }
-        scoreboard.addScoreHolderToTeam(scoreHolder.getNameForScoreboard(), server.getScoreboard().getTeam(team.getName()));
+        scoreboard.addPlayerToTeam(scoreHolder.getScoreboardName(), server.getScoreboard().getPlayerTeam(team.getName()));
         ItemShuffle.getInstance().broadcast("§7Player §f" + player.getName().getString() + " §7joined team §" + team.getColor() + team.getName());
     }
 
@@ -224,7 +221,7 @@ public class PlayerManager {
     }
 
     public void refreshTeamData(boolean show) {
-        PacketByteBuf buf = PacketByteBufs.create();
+        FriendlyByteBuf buf = PacketByteBufs.create();
         if (show) {
             buf.writeInt(teams.size());
             for (ItemShuffleTeam team : teams.values()) {
@@ -238,22 +235,22 @@ public class PlayerManager {
     }
 
     public void refreshOtherItems(boolean show) {
-        PacketByteBuf buf = PacketByteBufs.create();
+        FriendlyByteBuf buf = PacketByteBufs.create();
         if (show) {
             buf.writeInt(players.size());
             for (ItemShufflePlayer player : players.values()) {
-                buf.writeString(player.getPlayer().getName().getString());
+                buf.writeUtf(player.getPlayer().getName().getString());
                 if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN || ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
 //                    buf.writeItemStack(new ItemStack(Items.AIR));
-                    buf.writeIdentifier(Registries.ITEM.getId(Items.AIR));
+                    buf.writeIdentifier(BuiltInRegistries.ITEM.getKey(Items.AIR));
                     buf.writeInt(player.getPoints());
                 } else {
                     if (player.getItem() != null) {
 //                        buf.writeItemStack(new ItemStack(player.getItem()));
-                        buf.writeIdentifier(Registries.ITEM.getId(player.getItem()));
+                        buf.writeIdentifier(BuiltInRegistries.ITEM.getKey(player.getItem()));
                         buf.writeInt(player.isCompleted() ? 1 : 0);
                     } else {
-                        buf.writeIdentifier(Registries.ITEM.getId(Items.AIR));
+                        buf.writeIdentifier(BuiltInRegistries.ITEM.getKey(Items.AIR));
 //                        buf.writeItemStack(new ItemStack(Items.AIR));
                         buf.writeInt(0);
                     }
@@ -342,7 +339,7 @@ public class PlayerManager {
 
     public void updateTimers() {
 
-        int color = ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH ? ColorHelper.getArgb(150,100,65,165) : ColorHelper.getArgb(150,70,150,70);
+        int color = ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH ? ARGB.color(150,100,65,165) : ARGB.color(150,70,150,70);
         this.updateTimers(color);
     }
 

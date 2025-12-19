@@ -2,7 +2,7 @@ package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.TeamData;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 
 public class GameSettings {
 
@@ -26,22 +26,22 @@ public class GameSettings {
 
     }
 
-    public GameSettings(PacketByteBuf buf) {
+    public GameSettings(FriendlyByteBuf buf) {
         removeItems = buf.readBoolean();
-        gameType = buf.readEnumConstant(GameType.class);
-        itemType = buf.readEnumConstant(ItemGenType.class);
+        gameType = buf.readEnum(GameType.class);
+        itemType = buf.readEnum(ItemGenType.class);
         time = buf.readInt();
         twitchEnabled = buf.readBoolean();
         showTimers = buf.readBoolean();
         pauseOnFail = buf.readBoolean();
         giveFood = buf.readBoolean();
-        showItemsMode = buf.readEnumConstant(ItemShowType.class);
+        showItemsMode = buf.readEnum(ItemShowType.class);
         debug = buf.readBoolean();
-        teamShowType = buf.readEnumConstant(TeamData.Show.class);
+        teamShowType = buf.readEnum(TeamData.Show.class);
         blockMode = buf.readBoolean();
         boardSize = buf.readInt();
         boardTarget = buf.readInt();
-        itemGenDimension = buf.readEnumConstant(ItemGenDimension.class);
+        itemGenDimension = buf.readEnum(ItemGenDimension.class);
     }
 
     @Override
@@ -69,23 +69,23 @@ public class GameSettings {
         System.out.println(this);
     }
 
-    public PacketByteBuf toPacket() {
-        PacketByteBuf buf = PacketByteBufs.create();
+    public FriendlyByteBuf toPacket() {
+        FriendlyByteBuf buf = PacketByteBufs.create();
         buf.writeBoolean(removeItems);
-        buf.writeEnumConstant(gameType);
-        buf.writeEnumConstant(itemType);
+        buf.writeEnum(gameType);
+        buf.writeEnum(itemType);
         buf.writeInt(time);
         buf.writeBoolean(twitchEnabled);
         buf.writeBoolean(showTimers);
         buf.writeBoolean(pauseOnFail);
         buf.writeBoolean(giveFood);
-        buf.writeEnumConstant(showItemsMode);
+        buf.writeEnum(showItemsMode);
         buf.writeBoolean(debug);
-        buf.writeEnumConstant(teamShowType);
+        buf.writeEnum(teamShowType);
         buf.writeBoolean(blockMode);
         buf.writeInt(boardSize);
         buf.writeInt(boardTarget);
-        buf.writeEnumConstant(itemGenDimension);
+        buf.writeEnum(itemGenDimension);
         return buf;
     }
 }

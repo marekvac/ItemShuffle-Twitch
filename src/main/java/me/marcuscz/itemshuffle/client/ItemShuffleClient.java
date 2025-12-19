@@ -12,15 +12,14 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.resource.language.TranslationStorage;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.ClientLanguage;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
 import org.json.simple.parser.ParseException;
 
 import java.io.File;
@@ -39,7 +38,7 @@ public class ItemShuffleClient implements ClientModInitializer {
     private VotingClient votingClient;
     public boolean votingEnabled = false;
     public ItemStack lastItem;
-    private static KeyBinding keyBinding;
+    private static KeyMapping keyBinding;
 
     @Override
     public void onInitializeClient() {
@@ -48,23 +47,23 @@ public class ItemShuffleClient implements ClientModInitializer {
         loadSettings();
 
         ClientTickEvents.START_CLIENT_TICK.register(hudRender::tick);
-        HudElementRegistry.addLast(Identifier.of("itemshuffle", "hud"), hudRender::renderItemShuffleHUD);
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("itemshuffle", "hud"), hudRender::renderItemShuffleHUD);
 
         ClientPlayNetworking.registerGlobalReceiver(ITEM_MESSAGES_ID, (payload, ctx) -> {
             var client = ctx.client();
-            lastItem  = new ItemStack(Registries.ITEM.get(payload.buf().readIdentifier()));
+            lastItem  = new ItemStack(BuiltInRegistries.ITEM.getValue(payload.buf().readIdentifier()));
             hudRender.setItem(lastItem);
             hudRender.setItemCompleted(false);
-            String key = lastItem.getItem().getTranslationKey();
-            String lang = TranslationStorage.getInstance().get(key);
+            String key = lastItem.getItem().getDescriptionId();
+            String lang = ClientLanguage.getInstance().getOrDefault(key);
             String message = ItemShuffle.getInstance().getSettings().blockMode ? "You must stand on" : "Your material";
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§a" + message + ": §6" + lang), false);
+                client.player.displayClientMessage(Component.literal("§a" + message + ": §6" + lang), false);
             }
         });
 
         ClientPlayNetworking.registerGlobalReceiver(TIMER_SHOW_ID, (payload, ctx) -> {
-            PacketByteBuf buf = payload.buf();
+            FriendlyByteBuf buf = payload.buf();
             hudRender.setCurrentTime(buf.readInt());
             hudRender.setTime(buf.readInt());
             hudRender.setColor(buf.readInt());
@@ -89,7 +88,7 @@ public class ItemShuffleClient implements ClientModInitializer {
         });
 
         ClientPlayNetworking.registerGlobalReceiver(VOTING_INIT_ID, (payload, ctx) -> {
-            PacketByteBuf buf = PacketByteBufs.create();
+            FriendlyByteBuf buf = PacketByteBufs.create();
             GenericPayload payload1 = new GenericPayload(VOTING_CONFIRMATION_ID, buf);
             var responseSender = ctx.responseSender();
             if (twitchSettings.twitchEnabled) {
@@ -110,12 +109,12 @@ public class ItemShuffleClient implements ClientModInitializer {
         });
 
         ClientPlayNetworking.registerGlobalReceiver(VOTING_GET_WINNER_ID, (payload, ctx) -> {
-            PacketByteBuf buf = PacketByteBufs.create();
+            FriendlyByteBuf buf = PacketByteBufs.create();
             var responseSender = ctx.responseSender();
             if (votingEnabled) {
                 VotingItem item = votingClient.getWinner();
                 if (item != null) {
-                    buf.writeIdentifier(Registries.ITEM.getId(item.getItem()));
+                    buf.writeIdentifier(BuiltInRegistries.ITEM.getKey(item.getItem()));
                     responseSender.sendPacket(new GenericPayload(VOTING_SEND_WINNER_ID, buf));
                 }
             }
@@ -133,8 +132,8 @@ public class ItemShuffleClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(NEXT_ROUND_ID, (payload, ctx) -> {
             if (votingEnabled) {
-                PacketByteBuf buf = payload.buf();
-                int[] ids = buf.readIntArray();
+                FriendlyByteBuf buf = payload.buf();
+                int[] ids = buf.readVarIntArray();
 //                votingClient.getItemManager().nextRound(1);
                 votingClient.nextVote(ids);
                 hudRender.showVotes(true);
@@ -156,7 +155,7 @@ public class ItemShuffleClient implements ClientModInitializer {
     }
 
     public void saveGameSettings() {
-        if (MinecraftClient.getInstance().getNetworkHandler() != null && !MinecraftClient.getInstance().getNetworkHandler().getConnection().isLocal()) {
+        if (Minecraft.getInstance().getConnection() != null && !Minecraft.getInstance().getConnection().getConnection().isMemoryConnection()) {
             ClientPlayNetworking.send(new GenericPayload(SETTING_SYNC_ID, ItemShuffle.getInstance().getSettings().toPacket()));
         } else {
             ItemShuffle.getInstance().saveSettings();
@@ -204,9 +203,9 @@ public class ItemShuffleClient implements ClientModInitializer {
     }
 
     public static void sendPlayerMessage(String message) {
-        if (MinecraftClient.getInstance().player == null) {
+        if (Minecraft.getInstance().player == null) {
             return;
         }
-        MinecraftClient.getInstance().player.sendMessage(Text.literal(message), false);
+        Minecraft.getInstance().player.displayClientMessage(Component.literal(message), false);
     }
 }

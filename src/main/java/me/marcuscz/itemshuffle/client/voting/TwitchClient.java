@@ -2,7 +2,7 @@ package me.marcuscz.itemshuffle.client.voting;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
 import me.marcuscz.itemshuffle.client.ItemShuffleClient;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.pircbotx.Configuration;
 import org.pircbotx.PircBotX;
 import org.pircbotx.cap.EnableCapHandler;
@@ -85,7 +85,7 @@ public class TwitchClient extends ListenerAdapter {
         long currentTime = System.currentTimeMillis();
         if(currentTime-lastJoinMessage>60000){
             ItemShuffleClient.sendPlayerMessage("§2Connected to the Twitch Chat: §a" + ItemShuffleClient.getInstance().getTwitchSettings().channel);
-            sendMessage("/me [ItemShuffle] Connected to the game to user: " + MinecraftClient.getInstance().getName());
+            sendMessage("/me [ItemShuffle] Connected to the game to user: " + Minecraft.getInstance().name());
             lastJoinMessage=currentTime;
         }
     }

@@ -1,10 +1,9 @@
 package me.marcuscz.itemshuffle.game.phase;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.item.Item;
-
 import java.util.Random;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 
 public class PhaseItem {
 
@@ -18,7 +17,7 @@ public class PhaseItem {
 //        int baseChance = 50;
         Random random = new Random();
         chance = baseChance + random.nextInt(40);
-        isBlock = Block.getBlockFromItem(item) != Blocks.AIR;
+        isBlock = Block.byItem(item) != Blocks.AIR;
         this.uncraftable = uncraftable;
     }
 

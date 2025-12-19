@@ -1,10 +1,11 @@
 package me.marcuscz.itemshuffle.client.voting;
 
-import net.minecraft.client.resource.language.TranslationStorage;
-import net.minecraft.item.Item;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.Math.floor;
+
+import net.minecraft.client.resources.language.ClientLanguage;
+import net.minecraft.world.item.Item;
 
 public class VotingItem {
 
@@ -14,7 +15,7 @@ public class VotingItem {
 
     public VotingItem(@NotNull Item item) {
         this.item = item;
-        this.name = TranslationStorage.getInstance().get(item.getTranslationKey());
+        this.name = ClientLanguage.getInstance().getOrDefault(item.getDescriptionId());
     }
 
     public int getVotes() {

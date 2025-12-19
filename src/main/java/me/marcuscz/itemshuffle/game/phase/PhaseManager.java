@@ -3,9 +3,9 @@ package me.marcuscz.itemshuffle.game.phase;
 import me.marcuscz.itemshuffle.ItemShuffle;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -126,8 +126,8 @@ public class PhaseManager {
         ItemPhaseBuilder builder = new ItemPhaseBuilder();
         items.forEach(i -> {
             ItemShuffle.logDebug("Current item: " + i);
-            Identifier id = Identifier.of((String) i);
-            Item item = Registries.ITEM.get(id);
+            Identifier id = Identifier.parse((String) i);
+            Item item = BuiltInRegistries.ITEM.getValue(id);
             builder.addItem(item);
         });
         ItemPhase itemPhase = new ItemPhase(rounds.intValue());
@@ -136,8 +136,8 @@ public class PhaseManager {
         JSONArray blocks = (JSONArray) phase.get("standing_only");
         ItemPhaseBuilder builder2 = new ItemPhaseBuilder();
         blocks.forEach(i -> {
-            Identifier id = Identifier.of((String) i);
-            Item item = Registries.ITEM.get(id);
+            Identifier id = Identifier.parse((String) i);
+            Item item = BuiltInRegistries.ITEM.getValue(id);
             builder2.addItem(item);
         });
         itemPhase.addItems(builder2.getItems(), true, 5);

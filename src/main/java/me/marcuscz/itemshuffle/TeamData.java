@@ -2,10 +2,9 @@ package me.marcuscz.itemshuffle;
 
 import me.marcuscz.itemshuffle.game.ItemShuffleTeam;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.registry.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.Item;
 
 public class TeamData {
 
@@ -21,11 +20,11 @@ public class TeamData {
 
     }
 
-    public PacketByteBuf toPacket() {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeString(name);
+    public FriendlyByteBuf toPacket() {
+        FriendlyByteBuf buf = PacketByteBufs.create();
+        buf.writeUtf(name);
         buf.writeChar(color);
-        buf.writeIdentifier(Registries.ITEM.getId(item));
+        buf.writeIdentifier(BuiltInRegistries.ITEM.getKey(item));
         buf.writeInt(runScore);
         buf.writeInt(fails);
         buf.writeInt(players);
@@ -45,11 +44,11 @@ public class TeamData {
         return data;
     }
 
-    public static TeamData fromPacket(PacketByteBuf buf) {
+    public static TeamData fromPacket(FriendlyByteBuf buf) {
         TeamData data = new TeamData();
-        data.name = buf.readString();
+        data.name = buf.readUtf();
         data.color = buf.readChar();
-        data.item = Registries.ITEM.get(buf.readIdentifier());
+        data.item = BuiltInRegistries.ITEM.getValue(buf.readIdentifier());
         data.runScore = buf.readInt();
         data.fails = buf.readInt();
         data.players = buf.readInt();

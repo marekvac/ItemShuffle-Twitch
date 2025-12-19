@@ -1,26 +1,25 @@
 package me.marcuscz.itemshuffle.client;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.ColorHelper;
-
 import java.util.HashMap;
 import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.ARGB;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 public class BoardRender {
 
-    private final MinecraftClient minecraftClient = MinecraftClient.getInstance();
+    private final Minecraft minecraftClient = Minecraft.getInstance();
     public static final HashMap<Character, Integer> colors = new HashMap<>()
     {{
-        put('9', ColorHelper.getArgb(100, 0,0,255));
-        put('2', ColorHelper.getArgb(100,0,255,0));
-        put('c', ColorHelper.getArgb(100,255,0,0));
-        put('e', ColorHelper.getArgb(100,255,255,0));
+        put('9', ARGB.color(100, 0,0,255));
+        put('2', ARGB.color(100,0,255,0));
+        put('c', ARGB.color(100,255,0,0));
+        put('e', ARGB.color(100,255,255,0));
     }};
 
     public int size;
@@ -40,36 +39,36 @@ public class BoardRender {
         this.items = items;
     }
 
-    public void draw(DrawContext context) {
+    public void draw(GuiGraphics context) {
 
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                context.drawGuiTexture(pipeline, HudRender.background, posX + 18 * j, posY + 18 * i, 26, 26);
+                context.blitSprite(pipeline, HudRender.background, posX + 18 * j, posY + 18 * i, 26, 26);
             }
         }
 
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                context.drawGuiTexture(pipeline, HudRender.slot, posX + 4 + 18 * j, posY + 4 + 18 * i, 18, 18);
+                context.blitSprite(pipeline, HudRender.slot, posX + 4 + 18 * j, posY + 4 + 18 * i, 18, 18);
             }
         }
 
         drawStatus(context);
 
-        if (minecraftClient.options.playerListKey.isPressed()) {
+        if (minecraftClient.options.keyPlayerList.isDown()) {
             for (int i = 0; i < size; i++) {
                 for (int j = 0; j < size; j++) {
-                    context.drawCenteredTextWithShadow(minecraftClient.textRenderer, Text.literal(String.valueOf(i*size+j+1)), posX + 4 + 18 * j + 9, posY + 4 + 18 * i + 4, ColorHelper.getArgb(255,255,255,255));
+                    context.drawCenteredString(minecraftClient.font, Component.literal(String.valueOf(i*size+j+1)), posX + 4 + 18 * j + 9, posY + 4 + 18 * i + 4, ARGB.color(255,255,255,255));
                 }
             }
-            context.drawTextWithShadow(minecraftClient.textRenderer, Text.literal("Use §b/whatitem <n> §rto identify item"), posX, posY + 18 * size + 10, ColorHelper.getArgb(255,255,255,255));
+            context.drawString(minecraftClient.font, Component.literal("Use §b/whatitem <n> §rto identify item"), posX, posY + 18 * size + 10, ARGB.color(255,255,255,255));
         } else {
             drawItems(context);
         }
 
     }
 
-    private void drawStatus(DrawContext context) {
+    private void drawStatus(GuiGraphics context) {
         if (status == null) return;
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
@@ -81,12 +80,12 @@ public class BoardRender {
         }
     }
 
-    private void drawItems(DrawContext context) {
+    private void drawItems(GuiGraphics context) {
         if (items == null) return;
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 if (items.get(i*size+j) == null) continue;
-                context.drawItem(new ItemStack(items.get(i*size+j)), posX + 4 + 18 * j + 1, posY + 4 + 18 * i + 1);
+                context.renderItem(new ItemStack(items.get(i*size+j)), posX + 4 + 18 * j + 1, posY + 4 + 18 * i + 1);
             }
         }
 

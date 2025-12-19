@@ -4,21 +4,20 @@ import me.marcuscz.itemshuffle.ItemShuffle;
 import me.marcuscz.itemshuffle.networking.GenericPayload;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import java.util.*;
 
 import static me.marcuscz.itemshuffle.NetworkingConstants.*;
 
 public class ItemShufflePlayer {
 
-    private ServerPlayerEntity player;
+    private ServerPlayer player;
     private final UUID uuid;
     private final String name;
     private Item item;
@@ -28,9 +27,9 @@ public class ItemShufflePlayer {
     private Queue<Item> itemQueue;
     private int runPoints;
 
-    public ItemShufflePlayer(ServerPlayerEntity player) {
+    public ItemShufflePlayer(ServerPlayer player) {
         this.player = player;
-        uuid = player.getUuid();
+        uuid = player.getUUID();
         name = player.getName().getString();
     }
 
@@ -44,7 +43,7 @@ public class ItemShufflePlayer {
     }
 
     public void setTeamName(char color) {
-        player.setCustomName(Text.literal("§" + color + player.getName()));
+        player.setCustomName(Component.literal("§" + color + player.getName()));
         player.setCustomNameVisible(true);
     }
 
@@ -58,7 +57,7 @@ public class ItemShufflePlayer {
         runPoints = 0;
     }
 
-    public void setPlayer(ServerPlayerEntity player) {
+    public void setPlayer(ServerPlayer player) {
         this.player = player;
     }
 
@@ -93,7 +92,7 @@ public class ItemShufflePlayer {
                     item = itemQueue.poll();
                     sendItem();
                     runPoints++;
-                    player.sendMessage(Text.literal("§fRun Points: §b" + runPoints), false);
+                    player.displayClientMessage(Component.literal("§fRun Points: §b" + runPoints), false);
                     GameManager.getInstance().getPlayerManager().refreshOtherItems(true);
                 } else if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
                     runPoints++;
@@ -131,11 +130,11 @@ public class ItemShufflePlayer {
     private boolean checkItem(Item item) {
         boolean c;
         if (ItemShuffle.getInstance().getSettings().blockMode) {
-            c = player.getSteppingBlockState().getBlock().asItem() == item;
+            c = player.getBlockStateOn().getBlock().asItem() == item;
         } else {
             c = player.getInventory().contains(new ItemStack(item));
             if (c && ItemShuffle.getInstance().getSettings().removeItems) {
-                player.getInventory().remove(itemStack -> itemStack.getItem() == item, 1, player.getInventory());
+                player.getInventory().clearOrCountMatchingItems(itemStack -> itemStack.getItem() == item, 1, player.getInventory());
             }
         }
         return c;
@@ -146,7 +145,7 @@ public class ItemShufflePlayer {
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.TEAM) {
             ItemShuffleTeam t = GameManager.getInstance().getPlayerManager().getPlayersTeam(uuid);
             if (t == null) {
-                player.sendMessage(Text.literal("§4You are not in team!"), false);
+                player.displayClientMessage(Component.literal("§4You are not in team!"), false);
                 return;
             }
             t.skipItem();
@@ -155,7 +154,7 @@ public class ItemShufflePlayer {
             sendItem();
             runPoints--;
             if (runPoints < 0) runPoints = 0;
-            player.sendMessage(Text.literal("§fRun Points: §b" + runPoints), false);
+            player.displayClientMessage(Component.literal("§fRun Points: §b" + runPoints), false);
             ItemShuffle.getInstance().broadcast("§7Player §f" + name + "§7 skipped their " + (ItemShuffle.getInstance().getSettings().blockMode ? "block" : "item"));
         }
     }
@@ -173,8 +172,8 @@ public class ItemShufflePlayer {
         if (player == null) {
             return;
         }
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeIdentifier(Registries.ITEM.getId(item));
+        FriendlyByteBuf buf = PacketByteBufs.create();
+        buf.writeIdentifier(BuiltInRegistries.ITEM.getKey(item));
         ServerPlayNetworking.send(player, new GenericPayload(ITEM_MESSAGES_ID, buf));
     }
 
@@ -200,14 +199,14 @@ public class ItemShufflePlayer {
         if (player == null || player.getInventory().contains(new ItemStack(Items.COOKED_BEEF))) {
             return;
         }
-        player.giveItemStack(new ItemStack(Items.COOKED_BEEF, 32));
+        player.addItem(new ItemStack(Items.COOKED_BEEF, 32));
     }
 
     public void updateTimer(int color) {
         if (player == null) {
             return;
         }
-        PacketByteBuf buf = PacketByteBufs.create();
+        FriendlyByteBuf buf = PacketByteBufs.create();
         buf.writeInt(GameManager.getCurrentTime());
         buf.writeInt(GameManager.getTime());
         buf.writeInt(color);
@@ -236,19 +235,19 @@ public class ItemShufflePlayer {
         hideItemPlayer(player);
     }
 
-    public static void hideTimerPlayer(ServerPlayerEntity player) {
+    public static void hideTimerPlayer(ServerPlayer player) {
         ServerPlayNetworking.send(player, new GenericPayload(TIMER_HIDE_ID, PacketByteBufs.empty()));
     }
 
-    public static void sendGameStopped(ServerPlayerEntity player) {
+    public static void sendGameStopped(ServerPlayer player) {
         ServerPlayNetworking.send(player, new GenericPayload(GAME_STOP_ID, PacketByteBufs.empty()));
     }
 
-    public static void showItemPlayer(ServerPlayerEntity player) {
+    public static void showItemPlayer(ServerPlayer player) {
         ServerPlayNetworking.send(player, new GenericPayload(SHOW_ITEM_ID, PacketByteBufs.empty()));
     }
 
-    public static void hideItemPlayer(ServerPlayerEntity player) {
+    public static void hideItemPlayer(ServerPlayer player) {
         ServerPlayNetworking.send(player, new GenericPayload(HIDE_ITEM_ID, PacketByteBufs.empty()));
     }
 
@@ -267,14 +266,14 @@ public class ItemShufflePlayer {
     }
 
     public void createNewVoting(List<Item> itemList) {
-        PacketByteBuf buf = PacketByteBufs.create();
+        FriendlyByteBuf buf = PacketByteBufs.create();
         int[] ids = new int[itemList.size()];
         int i = 0;
         for (Item item1 : itemList) {
-            ids[i] = Registries.ITEM.getRawId(item1);
+            ids[i] = BuiltInRegistries.ITEM.getId(item1);
             i++;
         }
-        buf.writeIntArray(ids);
+        buf.writeVarIntArray(ids);
         ServerPlayNetworking.send(player, new GenericPayload(NEXT_ROUND_ID, buf));
     }
 
@@ -308,18 +307,18 @@ public class ItemShufflePlayer {
 
     public void sendBoard(int size, List<Item> board) {
         ItemShuffle.getLogger().info("pre send board");
-        PacketByteBuf buf = PacketByteBufs.create();
+        FriendlyByteBuf buf = PacketByteBufs.create();
         buf.writeInt(size);
         for (Item item : board) {
 //            buf.writeItemStack(new ItemStack(item));
-            buf.writeIdentifier(Registries.ITEM.getId(item));
+            buf.writeIdentifier(BuiltInRegistries.ITEM.getKey(item));
         }
         ServerPlayNetworking.send(player, new GenericPayload(INIT_BOARD_ID, buf));
         ItemShuffle.getLogger().info("send board");
     }
 
     public void sendBoardStatus(List<Character> status) {
-        PacketByteBuf buf = PacketByteBufs.create();
+        FriendlyByteBuf buf = PacketByteBufs.create();
         for (Character character : status) {
             if (character == null) buf.writeChar('\0');
             else buf.writeChar(character);
@@ -331,7 +330,7 @@ public class ItemShufflePlayer {
         ServerPlayNetworking.send(player, new GenericPayload(HIDE_BOARD_ID, PacketByteBufs.empty()));
     }
 
-    public ServerPlayerEntity getPlayer() {
+    public ServerPlayer getPlayer() {
         return player;
     }
 

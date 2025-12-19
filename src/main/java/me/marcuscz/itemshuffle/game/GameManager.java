@@ -1,12 +1,12 @@
 package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
-import net.minecraft.item.Item;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.ColorHelper;
+import net.minecraft.util.ARGB;
+import net.minecraft.world.item.Item;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
@@ -63,14 +63,14 @@ public class GameManager {
         ItemShuffle.logDebug("Item manager initialized");
 
         if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD && playerManager.getTeams().isEmpty()) {
-            if (ItemShuffle.getInstance().getServer().getPlayerManager().getPlayerList().size() > 4) {
+            if (ItemShuffle.getInstance().getServer().getPlayerList().getPlayers().size() > 4) {
                 ItemShuffle.getInstance().broadcast("§cYou need to manually specify teams!");
                 return true;
             }
             try {
-                playerManager.autoTeams(ItemShuffle.getInstance().getServer().getPlayerManager().getPlayerList().size(), false);
-                for (int i = 0; i < ItemShuffle.getInstance().getServer().getPlayerManager().getPlayerList().size(); i++) {
-                    playerManager.joinPlayer(PlayerManager.TEAM_NAMES[i], ItemShuffle.getInstance().getServer().getPlayerManager().getPlayerList().get(i));
+                playerManager.autoTeams(ItemShuffle.getInstance().getServer().getPlayerList().getPlayers().size(), false);
+                for (int i = 0; i < ItemShuffle.getInstance().getServer().getPlayerList().getPlayers().size(); i++) {
+                    playerManager.joinPlayer(PlayerManager.TEAM_NAMES[i], ItemShuffle.getInstance().getServer().getPlayerList().getPlayers().get(i));
                 }
             } catch (Exception e) {
                 ItemShuffle.getInstance().broadcast("§cFailed to auto create teams for board. Create teams manually.");
@@ -132,7 +132,7 @@ public class GameManager {
         paused = true;
         playerManager.hideTimers();
         playerManager.hideItems();
-        ItemShuffle.getInstance().broadcast(Text.literal("§6Game has been paused! ").append(Text.literal("§2§nResume").setStyle(Style.EMPTY.withClickEvent(new ClickEvent.RunCommand("/itemshuffle resume")))));
+        ItemShuffle.getInstance().broadcast(Component.literal("§6Game has been paused! ").append(Component.literal("§2§nResume").setStyle(Style.EMPTY.withClickEvent(new ClickEvent.RunCommand("/itemshuffle resume")))));
         return true;
     }
 
@@ -370,7 +370,7 @@ public class GameManager {
             if (currentTime <= 200 && currentTime > 0) {
                 if (!timesUp) {
                     timesUp = true;
-                    playerManager.updateTimers(ColorHelper.getArgb(150,170,50,50));
+                    playerManager.updateTimers(ARGB.color(150,170,50,50));
                 }
                 if (currentTime == 0) {
                     if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {

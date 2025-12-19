@@ -10,11 +10,11 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -89,7 +89,7 @@ public class ItemShuffle implements ModInitializer {
                 ItemShufflePlayer.sendGameStopped(handler.getPlayer());
                 return;
             }
-            UUID uuid = handler.getPlayer().getUuid();
+            UUID uuid = handler.getPlayer().getUUID();
             if (PlayerManager.teamMode() && GameManager.isActive() && !GameManager.isPaused()) {
                 gameManager.getPlayerManager().refreshTeamData(true);
             }
@@ -103,7 +103,7 @@ public class ItemShuffle implements ModInitializer {
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server1) -> {
-            if (server1.getPlayerManager().getCurrentPlayerCount() <= 1) {
+            if (server1.getPlayerList().getPlayerCount() <= 1) {
                 gameManager.stop();
             }
         });
@@ -113,7 +113,7 @@ public class ItemShuffle implements ModInitializer {
             System.out.println("Received settings");
             settings = new GameSettings(payload.buf());
             saveSettings();
-            ctx.server().getPlayerManager().getPlayerList().forEach(player1 -> ServerPlayNetworking.send(player1, payload));
+            ctx.server().getPlayerList().getPlayers().forEach(player1 -> ServerPlayNetworking.send(player1, payload));
             broadcast("§bItemShuffle settings updated!");
         });
 
@@ -121,8 +121,8 @@ public class ItemShuffle implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(NetworkingConstants.VOTING_CONFIRMATION_ID, (payload, ctx) -> {
             var buf = payload.buf();
             var player = ctx.player();
-            if (buf.readBoolean() && gameManager.getPlayerManager().isGamePlayer(player.getUuid())) {
-                gameManager.getPlayerManager().getPlayer(player.getUuid()).setTwitchEnabled(true);
+            if (buf.readBoolean() && gameManager.getPlayerManager().isGamePlayer(player.getUUID())) {
+                gameManager.getPlayerManager().getPlayer(player.getUUID()).setTwitchEnabled(true);
             }
         });
 
@@ -132,8 +132,8 @@ public class ItemShuffle implements ModInitializer {
             var player = ctx.player();
             Identifier itemId = buf.readIdentifier();
             if (itemId != null) {
-                ItemStack itemStack = new ItemStack(Registries.ITEM.get(itemId));
-                gameManager.getItemManager().setQueueItem(player.getUuid(), itemStack.getItem());
+                ItemStack itemStack = new ItemStack(BuiltInRegistries.ITEM.getValue(itemId));
+                gameManager.getItemManager().setQueueItem(player.getUUID(), itemStack.getItem());
             }
         });
 
@@ -142,10 +142,10 @@ public class ItemShuffle implements ModInitializer {
             if (!GameManager.isActive()) {
                 return;
             }
-            if (gameManager.getPlayerManager().isGamePlayer(newPlayer.getUuid())) {
-                gameManager.getPlayerManager().getPlayer(newPlayer.getUuid()).setPlayer(newPlayer);
+            if (gameManager.getPlayerManager().isGamePlayer(newPlayer.getUUID())) {
+                gameManager.getPlayerManager().getPlayer(newPlayer.getUUID()).setPlayer(newPlayer);
                 if (settings.giveFood) {
-                    gameManager.getPlayerManager().getPlayer(newPlayer.getUuid()).giveFood();
+                    gameManager.getPlayerManager().getPlayer(newPlayer.getUUID()).giveFood();
                 }
             }
         });
@@ -176,13 +176,13 @@ public class ItemShuffle implements ModInitializer {
         return server;
     }
 
-    public void broadcast(Text message) {
-        server.getPlayerManager().broadcast(message, false);
+    public void broadcast(Component message) {
+        server.getPlayerList().broadcastSystemMessage(message, false);
 //        server.getPlayerManager().broadcastChatMessage(message, MessageType.CHAT, Util.NIL_UUID);
     }
 
     public void broadcast(String message) {
-        broadcast(Text.literal(message));
+        broadcast(Component.literal(message));
     }
 
     public void broadcast(String message, boolean actionBar) {
@@ -190,7 +190,7 @@ public class ItemShuffle implements ModInitializer {
             broadcast(message);
             return;
         }
-        server.getPlayerManager().getPlayerList().forEach(player -> player.sendMessage(Text.literal(message), true));
+        server.getPlayerList().getPlayers().forEach(player -> player.displayClientMessage(Component.literal(message), true));
     }
 
     public GameSettings getSettings() {

@@ -1,28 +1,28 @@
 package me.marcuscz.itemshuffle.networking;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public record GenericPayload(Id<GenericPayload> id, PacketByteBuf buf) implements CustomPayload {
+public record GenericPayload(Type<GenericPayload> id, FriendlyByteBuf buf) implements CustomPacketPayload {
 
-    public static PacketCodec<PacketByteBuf, GenericPayload> CODEC = PacketCodec.of(GenericPayload::write, GenericPayload::new);
+    public static StreamCodec<FriendlyByteBuf, GenericPayload> CODEC = StreamCodec.ofMember(GenericPayload::write, GenericPayload::new);
 
-    public GenericPayload(PacketByteBuf packetByteBuf) {
+    public GenericPayload(FriendlyByteBuf packetByteBuf) {
         this(
-                new Id<>(packetByteBuf.readIdentifier()),
-                new PacketByteBuf(packetByteBuf.readBytes(packetByteBuf.readVarInt()))
+                new Type<>(packetByteBuf.readIdentifier()),
+                new FriendlyByteBuf(packetByteBuf.readBytes(packetByteBuf.readVarInt()))
         );
     }
 
-    private void write(PacketByteBuf packetByteBuf) {
+    private void write(FriendlyByteBuf packetByteBuf) {
         packetByteBuf.writeIdentifier(id.id());
         packetByteBuf.writeVarInt(buf.readableBytes());
         packetByteBuf.writeBytes(buf.copy());
     }
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return id;
     }
 }

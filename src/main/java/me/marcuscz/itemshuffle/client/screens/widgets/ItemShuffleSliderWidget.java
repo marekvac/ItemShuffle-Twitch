@@ -1,16 +1,16 @@
 package me.marcuscz.itemshuffle.client.screens.widgets;
 
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.network.chat.Component;
 
-public class ItemShuffleSliderWidget extends SliderWidget {
+public class ItemShuffleSliderWidget extends AbstractSliderButton {
 
     String title;
     MessageSupplier messageSupplier;
     ValueUpdater valueUpdater;
 
     public ItemShuffleSliderWidget(int x, int y, int width, int height, String title, double value, MessageSupplier messageSupplier, ValueUpdater valueUpdater) {
-        super(x, y, width, height, Text.literal(title), value);
+        super(x, y, width, height, Component.literal(title), value);
         this.title = title;
         this.messageSupplier=messageSupplier;
         this.valueUpdater=valueUpdater;
@@ -21,7 +21,7 @@ public class ItemShuffleSliderWidget extends SliderWidget {
     }
 
     @Override
-    public Text getMessage() {
+    public Component getMessage() {
         return this.messageSupplier.updateMessage(this,this.title,this.value);
     }
 
@@ -31,7 +31,7 @@ public class ItemShuffleSliderWidget extends SliderWidget {
     }
 
     public interface MessageSupplier {
-        Text updateMessage(ItemShuffleSliderWidget slider,String title, double value);
+        Component updateMessage(ItemShuffleSliderWidget slider,String title, double value);
     }
 
     public interface ValueUpdater {

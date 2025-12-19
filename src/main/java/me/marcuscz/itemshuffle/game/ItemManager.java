@@ -2,7 +2,7 @@ package me.marcuscz.itemshuffle.game;
 
 import me.marcuscz.itemshuffle.ItemShuffle;
 import me.marcuscz.itemshuffle.game.phase.PhaseManager;
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;

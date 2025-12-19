@@ -2,82 +2,83 @@ package me.marcuscz.itemshuffle.client.screens;
 
 import me.marcuscz.itemshuffle.client.ItemShuffleClient;
 import me.marcuscz.itemshuffle.client.voting.TwitchSettings;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.*;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.util.FormattedCharSequence;
 
 public class TwitchConfigurationScreen extends Screen {
 
     private final TwitchSettings twitchSettings;
 
-    TextFieldWidget twitchToken;
-    TextFieldWidget twitchChannel;
-    Text tokenTranslatable = Text.literal("Twitch OAuth2 Token");
-    Text channelTranslatable = Text.literal("Twitch channel name");
-    ButtonWidget twitchEnabled;
+    EditBox twitchToken;
+    EditBox twitchChannel;
+    Component tokenTranslatable = Component.literal("Twitch OAuth2 Token");
+    Component channelTranslatable = Component.literal("Twitch channel name");
+    Button twitchEnabled;
 
-    ButtonWidget done;
+    Button done;
 
     private final Screen parent;
 
     protected TwitchConfigurationScreen(Screen parent) {
-        super(Text.literal("Twitch settings"));
+        super(Component.literal("Twitch settings"));
         this.parent = parent;
         twitchSettings = ItemShuffleClient.getInstance().getTwitchSettings();
     }
 
     protected void init() {
-        twitchEnabled = ButtonWidget.builder(
-                Text.literal("Twitch Integration: " + (twitchSettings.twitchEnabled ? "Enabled" : "Disabled")),
+        twitchEnabled = Button.builder(
+                Component.literal("Twitch Integration: " + (twitchSettings.twitchEnabled ? "Enabled" : "Disabled")),
                 button -> {
                     twitchSettings.twitchEnabled = !twitchSettings.twitchEnabled;
-                    button.setMessage(Text.literal("Twitch Integration: " + (twitchSettings.twitchEnabled ? "Enabled" : "Disabled")));
+                    button.setMessage(Component.literal("Twitch Integration: " + (twitchSettings.twitchEnabled ? "Enabled" : "Disabled")));
                 }
-        ).dimensions(
+        ).bounds(
                 this.width/2-100,
                 30,
                 200,
                 20
         ).build();
-        this.addDrawableChild(twitchEnabled);
+        this.addRenderableWidget(twitchEnabled);
 
-        twitchToken = new TextFieldWidget(this.textRenderer,  this.width / 2 - 125, 80, 250, 20, Text.literal("Twitch OAuth2 Token"));
+        twitchToken = new EditBox(this.font,  this.width / 2 - 125, 80, 250, 20, Component.literal("Twitch OAuth2 Token"));
         twitchToken.setMaxLength(64);
-        twitchToken.setText(twitchSettings.authToken);
-        twitchToken.addFormatter((string, firstCharacterIndex) -> OrderedText.styledForwardsVisitedString("*".repeat(string.length()), Style.EMPTY));
-        this.addDrawableChild(twitchToken);
-        twitchChannel = new TextFieldWidget(this.textRenderer, this.width / 2 - 125, 110, 250, 20, Text.literal("Twitch channel name"));
-        twitchChannel.setText(twitchSettings.channel);
-        this.addDrawableChild(twitchChannel);
+        twitchToken.setValue(twitchSettings.authToken);
+        twitchToken.addFormatter((string, firstCharacterIndex) -> FormattedCharSequence.forward("*".repeat(string.length()), Style.EMPTY));
+        this.addRenderableWidget(twitchToken);
+        twitchChannel = new EditBox(this.font, this.width / 2 - 125, 110, 250, 20, Component.literal("Twitch channel name"));
+        twitchChannel.setValue(twitchSettings.channel);
+        this.addRenderableWidget(twitchChannel);
 
-        this.done = ButtonWidget.builder(
-                ScreenTexts.DONE,
+        this.done = Button.builder(
+                CommonComponents.GUI_DONE,
                 button -> onDone()
-        ).dimensions(
+        ).bounds(
                 this.width / 2 - 100,
                 this.height - 30,
                 200,
                 20
         ).build();
-        this.addDrawableChild(done);
+        this.addRenderableWidget(done);
     }
 
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
 //        this.renderBackground(context, mouseX, mouseY, delta);
 
-        context.drawTextWithShadow(this.textRenderer, tokenTranslatable, this.width / 2 - 135 - textRenderer.getWidth(tokenTranslatable), 86, 16777215);
-        context.drawTextWithShadow(this.textRenderer, channelTranslatable, this.width / 2 - 135 - textRenderer.getWidth(channelTranslatable), 116, 16777215);
+        context.drawString(this.font, tokenTranslatable, this.width / 2 - 135 - font.width(tokenTranslatable), 86, 16777215);
+        context.drawString(this.font, channelTranslatable, this.width / 2 - 135 - font.width(channelTranslatable), 116, 16777215);
 
         super.render(context, mouseX, mouseY, delta);
     }
 
     private void onDone() {
-        twitchSettings.authToken = twitchToken.getText();
-        twitchSettings.channel = twitchChannel.getText();
+        twitchSettings.authToken = twitchToken.getValue();
+        twitchSettings.channel = twitchChannel.getValue();
 
         ItemShuffleClient.getInstance().saveSettings();
         onClose();
@@ -85,7 +86,7 @@ public class TwitchConfigurationScreen extends Screen {
 
 
     public void onClose() {
-        this.client.setScreen(this.parent);
+        this.minecraft.setScreen(this.parent);
     }
 
 }
