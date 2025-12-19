@@ -1,7 +1,7 @@
 {
   "version":
   {
-    "file": 4.0,
+    "file": 5.0,
     "custom": false
   },
   "phases": [
@@ -168,7 +168,11 @@
         "minecraft:painting",
         "minecraft:chiseled_bookshelf",
         "minecraft:spruce_hanging_sign",
-        "minecraft:birch_hanging_sign"
+        "minecraft:birch_hanging_sign",
+        "minecraft:wooden_spear",
+        "minecraft:iron_spear",
+        "minecraft:golden_spear",
+        "minecraft:diamond_spear"
       ],
       "standing_only": [
         "minecraft:coal_ore",

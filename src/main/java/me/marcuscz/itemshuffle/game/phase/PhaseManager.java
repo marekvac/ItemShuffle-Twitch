@@ -22,6 +22,7 @@ public class PhaseManager {
 
     private double roundsLasted;
     private int currentPhase;
+    private int currentPhaseIndex;
     private final List<ItemPhase> phases;
     private final List<PhaseItem> availableItems;
 
@@ -105,6 +106,7 @@ public class PhaseManager {
         ItemShuffle.logDebug("Parsed phases file");
 
         currentPhase = 0;
+        currentPhaseIndex = phases.get(currentPhase).getPhaseIndex();
         availableItems.addAll(phases.get(currentPhase).getItems());
 
         ItemShuffle.getLogger().info("Phases initialized!");
@@ -130,8 +132,9 @@ public class PhaseManager {
             Item item = BuiltInRegistries.ITEM.getValue(id);
             builder.addItem(item);
         });
-        ItemPhase itemPhase = new ItemPhase(rounds.intValue());
-        itemPhase.addItems(builder.getItems(), false, 50);
+        Long phaseIndex = (Long) phase.get("phase");
+        ItemPhase itemPhase = new ItemPhase(rounds.intValue(), phaseIndex.intValue());
+        itemPhase.addItems(builder.getItems(), false, 50, phaseIndex.intValue());
 
         JSONArray blocks = (JSONArray) phase.get("standing_only");
         ItemPhaseBuilder builder2 = new ItemPhaseBuilder();
@@ -140,16 +143,16 @@ public class PhaseManager {
             Item item = BuiltInRegistries.ITEM.getValue(id);
             builder2.addItem(item);
         });
-        itemPhase.addItems(builder2.getItems(), true, 5);
+        itemPhase.addItems(builder2.getItems(), true, 50, phaseIndex.intValue());
         this.phases.add(itemPhase);
     }
 
     public List<Item> getVotingItems(int size) {
-        return ItemPhase.getItems(availableItems, size);
+        return ItemPhase.getItems(availableItems, size, currentPhaseIndex);
     }
 
     public Item getItem() {
-        return ItemPhase.getItem(availableItems);
+        return ItemPhase.getItem(availableItems, currentPhaseIndex);
     }
 
     public void printItems() {
@@ -161,9 +164,10 @@ public class PhaseManager {
         if (roundsLasted > phases.get(currentPhase).getRoundDuration() && currentPhase < phases.size()-1) {
             currentPhase++;
             if (currentPhase < phases.size()) {
-                ItemPhase previous = phases.get(currentPhase-1);
-                previous.increaseAllItems(40);
+//                ItemPhase previous = phases.get(currentPhase-1);
+//                previous.increaseAllItems(40);
                 availableItems.addAll(phases.get(currentPhase).getItems());
+                currentPhaseIndex = phases.get(currentPhase).getPhaseIndex();
                 roundsLasted = 1;
                 ItemShuffle.getLogger().info("New Phase");
             }

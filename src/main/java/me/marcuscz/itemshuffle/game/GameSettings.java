@@ -6,6 +6,10 @@ import net.minecraft.network.FriendlyByteBuf;
 
 public class GameSettings {
 
+    public static double[] DIFFICULTY_RATES = {0.7, 0.4, 0.05};
+    public static String[] DIFFICULTY_NAMES = {"Easy", "Medium", "Hard"};
+    public static int MAX_DIFFICULTY = DIFFICULTY_RATES.length - 1;
+
     public boolean removeItems = false;
     public GameType gameType = GameType.SOLO;
     public ItemGenType itemType = ItemGenType.RANDOM;
@@ -21,6 +25,7 @@ public class GameSettings {
     public int boardSize = 3;
     public int boardTarget = 3;
     public ItemGenDimension itemGenDimension = ItemGenDimension.OFF;
+    public int itemDifficulty = 0;
 
     public GameSettings() {
 
@@ -42,6 +47,7 @@ public class GameSettings {
         boardSize = buf.readInt();
         boardTarget = buf.readInt();
         itemGenDimension = buf.readEnum(ItemGenDimension.class);
+        itemDifficulty = buf.readInt();
     }
 
     @Override
@@ -62,6 +68,7 @@ public class GameSettings {
                 ", boardSize=" + boardSize +
                 ", boardTarget=" + boardTarget +
                 ", itemGenDimension=" + itemGenDimension +
+                ", itemDifficulty=" + itemDifficulty +
                 '}';
     }
 
@@ -86,6 +93,7 @@ public class GameSettings {
         buf.writeInt(boardSize);
         buf.writeInt(boardTarget);
         buf.writeEnum(itemGenDimension);
+        buf.writeInt(itemDifficulty);
         return buf;
     }
 }

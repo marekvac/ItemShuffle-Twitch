@@ -100,8 +100,24 @@ public class ItemShuffleConfigurationScreen extends Screen {
                 150,
                 20
         ).build();
-        itemTypeWidget.active = settings.gameType != GameType.TWITCH && settings.gameType != GameType.BOARD;
         this.addRenderableWidget(itemDimensionWidget);
+
+        Button itemDifficultyButton = Button.builder(
+                Component.literal("Item Difficulty: " + GameSettings.DIFFICULTY_NAMES[settings.itemDifficulty]),
+                button -> {
+                    settings.itemDifficulty++;
+                    if (settings.itemDifficulty > GameSettings.MAX_DIFFICULTY) {
+                        settings.itemDifficulty = 0;
+                    }
+                    button.setMessage(Component.literal("Item Difficulty: " + GameSettings.DIFFICULTY_NAMES[settings.itemDifficulty]));
+                    changes = true;
+                }).bounds(
+                this.width / 2 + 10,
+                200,
+                150,
+                20
+        ).build();
+        this.addRenderableWidget(itemDifficultyButton);
 
 
         Button integrationSettings = Button.builder(

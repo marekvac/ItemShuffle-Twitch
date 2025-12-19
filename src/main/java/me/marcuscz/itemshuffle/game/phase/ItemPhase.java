@@ -4,20 +4,24 @@ import me.marcuscz.itemshuffle.ItemShuffle;
 import net.minecraft.world.item.Item;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class ItemPhase {
 
     private final int roundDuration;
     private final List<PhaseItem> items;
+    private final int phaseIndex;
+    private static final Random random = new Random();
 
-    public ItemPhase(int roundDuration) {
+    public ItemPhase(int roundDuration, int phaseIndex) {
+        this.phaseIndex = phaseIndex;
         this.roundDuration = roundDuration;
         this.items = new ArrayList<>();
     }
 
-    public ItemPhase addItems(List<Item> items, boolean uncraftable, int baseChance) {
+    public ItemPhase addItems(List<Item> items, boolean uncraftable, int baseChance, int phaseIndex) {
         items.forEach(item -> {
-            PhaseItem phaseItem = new PhaseItem(item, uncraftable, baseChance);
+            PhaseItem phaseItem = new PhaseItem(item, uncraftable, baseChance, phaseIndex);
             this.items.add(phaseItem);
         });
         return this;
@@ -37,6 +41,41 @@ public class ItemPhase {
         return choice;
     }
 
+    private static PhaseItem getRandomItem(List<PhaseItem> items, int currentPhase) {
+        // 1. Nejprve si vyfiltrujeme kandidáty do listu.
+        // Děláme to jen jednou, abychom nemuseli streamovat dvakrát (tvůj původní kód to dělal 2x).
+        List<PhaseItem> candidates = items.stream()
+                .filter(ItemPhase::filterItem) // Předpokládám, že toto je tvůj filtr dostupnosti
+                .toList();
+
+        if (candidates.isEmpty()) {
+            return null;
+        }
+
+        // 2. Spočítáme celkovou váhu (Total Weight)
+        double totalWeight = 0;
+        for (PhaseItem item : candidates) {
+            totalWeight += item.getEffectiveChance(currentPhase);
+        }
+
+        // 3. Hodíme kostkou
+        double rand = random.nextDouble() * totalWeight;
+
+        // 4. Najdeme vítěze
+        for (PhaseItem item : candidates) {
+            double chance = item.getEffectiveChance(currentPhase);
+            rand -= chance;
+            if (rand < 0) {
+                return item;
+            }
+        }
+
+        // Fallback pro float imprecisions (velmi vzácné, ale jistota je jistota)
+        var item = candidates.get(candidates.size() - 1);
+        item.chosen();
+        return item;
+    }
+
     private static boolean filterItem(PhaseItem item) {
         if (ItemShuffle.getInstance().getSettings().blockMode) {
             return item.isBlock();
@@ -45,28 +84,28 @@ public class ItemPhase {
         }
     }
 
-    public static Item getItem(List<PhaseItem> items) {
+    public static Item getItem(List<PhaseItem> items, int currentPhase) {
         PhaseItem phaseItem = null;
         int i = 0;
         while (phaseItem == null && i < 10) {
-            phaseItem = getRandomItem(items);
+            phaseItem = getRandomItem(items, currentPhase);
             i++;
         }
         if (phaseItem != null) {
-            phaseItem.increaseChance(10);
+//            phaseItem.increaseChance(10);
             return phaseItem.getItem();
         }
         return null;
     }
 
-    public static List<Item> getItems(List<PhaseItem> items, int size) {
+    public static List<Item> getItems(List<PhaseItem> items, int size, int currentPhase) {
         List<Item> items1 = new ArrayList<>();
         int i = 0;
         while (items1.size() < size && i < 20) {
-            PhaseItem phaseItem = getRandomItem(items);
+            PhaseItem phaseItem = getRandomItem(items, currentPhase);
             if (phaseItem != null && !items1.contains(phaseItem.getItem())) {
                 items1.add(phaseItem.getItem());
-                phaseItem.increaseChance(5);
+//                phaseItem.increaseChance(10);
             }
             i++;
         }
@@ -77,12 +116,12 @@ public class ItemPhase {
         return items;
     }
 
-    public void increaseAllItems(int by) {
-        items.forEach(phaseItem -> phaseItem.increaseChance(by));
-    }
-
     public int getRoundDuration() {
         return roundDuration;
+    }
+
+    public int getPhaseIndex() {
+        return phaseIndex;
     }
 
     @Override
