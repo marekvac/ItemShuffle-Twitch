@@ -6,8 +6,8 @@ import net.minecraft.network.FriendlyByteBuf;
 
 public class GameSettings {
 
-    public static double[] DIFFICULTY_RATES = {0.7, 0.4, 0.05};
-    public static String[] DIFFICULTY_NAMES = {"Easy", "Medium", "Hard"};
+    public static double[] DIFFICULTY_RATES = {0.7, 0.4, 0.05, 0.01};
+    public static String[] DIFFICULTY_NAMES = {"Easy", "Medium", "Hard", "Extreme"};
     public static int MAX_DIFFICULTY = DIFFICULTY_RATES.length - 1;
 
     public boolean removeItems = false;

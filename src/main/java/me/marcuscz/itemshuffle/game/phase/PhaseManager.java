@@ -36,7 +36,7 @@ public class PhaseManager {
 
         ItemShuffle.getLogger().info("Loading phases file phases-" + ItemShuffle.MC_VERSION + (type.isEmpty() ? "" : type) + ".json");
 
-        ItemShuffle.logDebug("Getting phases file");
+//        ItemShuffle.logDebug("Getting phases file");
         File f = ItemShuffle.getPhasesFile(type);
 
         if (!f.getParentFile().getParentFile().exists()) {
@@ -56,13 +56,13 @@ public class PhaseManager {
             copyModFile(container, type);
         }
 
-        ItemShuffle.logDebug("Got mod container");
+//        ItemShuffle.logDebug("Got mod container");
 
         Optional<Path> maybePath = container.get().findPath("phases-" + ItemShuffle.MC_VERSION + type + ".json");
         if (maybePath.isEmpty()) {
             throw new FileNotFoundException("Failed to get phases file from mod container");
         }
-        ItemShuffle.logDebug("Path is valid");
+//        ItemShuffle.logDebug("Path is valid");
         Path modFilePath = maybePath.get();
         Path tmp = Files.createTempFile("itemshuffle_phases_", ".json");
         OutputStream ostmp = new FileOutputStream(tmp.toFile());
@@ -70,13 +70,13 @@ public class PhaseManager {
         ostmp.close();
         File modFile = tmp.toFile();
 
-        ItemShuffle.logDebug("Got mod phases file");
+//        ItemShuffle.logDebug("Got mod phases file");
 
         JSONParser jsonParser = new JSONParser();
         FileReader reader = new FileReader(f);
         FileReader readerMod = new FileReader(modFile);
 
-        ItemShuffle.logDebug("Parsing JSON file");
+//        ItemShuffle.logDebug("Parsing JSON file");
         JSONObject obj = (JSONObject) jsonParser.parse(reader);
         if (!obj.containsKey("version")) {
             reader.close();
@@ -98,12 +98,12 @@ public class PhaseManager {
             }
         }
         modFile.delete();
-        ItemShuffle.logDebug("Parsed JSON file");
+//        ItemShuffle.logDebug("Parsed JSON file");
 
         JSONArray phasesArray = (JSONArray) obj.get("phases");
-        ItemShuffle.logDebug("Parsing phases file");
+//        ItemShuffle.logDebug("Parsing phases file");
         phasesArray.forEach(ph -> this.parsePhase((JSONObject) ph));
-        ItemShuffle.logDebug("Parsed phases file");
+//        ItemShuffle.logDebug("Parsed phases file");
 
         currentPhase = 0;
         currentPhaseIndex = phases.get(currentPhase).getPhaseIndex();
@@ -127,7 +127,7 @@ public class PhaseManager {
         JSONArray items = (JSONArray) phase.get("items");
         ItemPhaseBuilder builder = new ItemPhaseBuilder();
         items.forEach(i -> {
-            ItemShuffle.logDebug("Current item: " + i);
+//            ItemShuffle.logDebug("Current item: " + i);
             Identifier id = Identifier.parse((String) i);
             Item item = BuiltInRegistries.ITEM.getValue(id);
             builder.addItem(item);

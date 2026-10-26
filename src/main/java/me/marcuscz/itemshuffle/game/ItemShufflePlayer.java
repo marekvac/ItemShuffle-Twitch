@@ -82,10 +82,12 @@ public class ItemShufflePlayer {
     }
 
     public void checkItem() {
-        if (completed) return;
+        if (completed) {
+            return;
+        }
 
         if (checkCompleted()) {
-            if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD) return;
+            if (ItemShuffle.getInstance().getSettings().gameType.isBoardType()) return;
 
             if (ItemShuffle.getInstance().getSettings().gameType != GameType.TEAM) {
                 if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
@@ -113,7 +115,17 @@ public class ItemShufflePlayer {
     }
 
     private boolean checkCompleted() {
-        if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD) {
+        if (ItemShuffle.getInstance().getSettings().gameType.isBoardType()) {
+            if (ItemShuffle.getInstance().getSettings().gameType == GameType.TIC_TAC_TOE) {
+                var team = GameManager.getInstance().getPlayerManager().getPlayersTeam(uuid);
+                if (team == null) {
+                    ItemShuffle.getLogger().error("Player is not in team, but they should be!");
+                    return false;
+                }
+                if (team != GameManager.getInstance().getPlayerManager().getActiveTeam()) {
+                    return false;
+                }
+            }
             for (Item i : GameManager.getInstance().getItemManager().getCompletableBoardItems()) {
                 if (checkItem(i)) {
                     GameManager.getInstance().completeBoardItem(i, this);

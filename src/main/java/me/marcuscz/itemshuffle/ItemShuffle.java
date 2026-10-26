@@ -113,7 +113,8 @@ public class ItemShuffle implements ModInitializer {
             System.out.println("Received settings");
             settings = new GameSettings(payload.buf());
             saveSettings();
-            ctx.server().getPlayerList().getPlayers().forEach(player1 -> ServerPlayNetworking.send(player1, payload));
+            var newPayload = new GenericPayload(NetworkingConstants.SETTING_SYNC_ID, settings.toPacket());
+            ctx.server().getPlayerList().getPlayers().forEach(player1 -> ServerPlayNetworking.send(player1, newPayload));
             broadcast("§bItemShuffle settings updated!");
         });
 
@@ -146,6 +147,10 @@ public class ItemShuffle implements ModInitializer {
                 gameManager.getPlayerManager().getPlayer(newPlayer.getUUID()).setPlayer(newPlayer);
                 if (settings.giveFood) {
                     gameManager.getPlayerManager().getPlayer(newPlayer.getUUID()).giveFood();
+                }
+                if (settings.gameType == GameType.TIC_TAC_TOE && gameManager.getPlayerManager().getActiveTeam() == gameManager.getPlayerManager().getPlayersTeam(newPlayer.getUUID())) {
+                    broadcast("§cPlayer §4" + newPlayer.getName().getString() + "§c died! Their team loses their turn!");
+                    gameManager.endRound(false);
                 }
             }
         });

@@ -29,6 +29,7 @@ public class PlayerManager {
     private final Map<String, ItemShuffleTeam> teams;
     private static final char[] TEAM_COLORS = {'9', '2', 'e', 'c', '5', 'b', 'd', '6'};
     public static final String[] TEAM_NAMES = {"BLUE", "GREEN", "YELLOW", "RED", "PURPLE", "AQUA", "PINK", "GOLD"};
+    private ItemShuffleTeam activeTeam;
 
     public PlayerManager() {
         this.players = new HashMap<>();
@@ -389,12 +390,47 @@ public class PlayerManager {
     public void initBoards(int size, List<Item> board) {
         players.values().forEach(p -> p.sendBoard(size, board));
     }
+    public void initBoardsCurrentTeam(int size, List<Item> board) {
+        if (activeTeam == null) return;
+        activeTeam.getPlayers().values().forEach(p -> p.sendBoard(size, board));
+    }
 
     public void setBoardStatus(List<Character> status) {
         players.values().forEach(p -> p.sendBoardStatus(status));
     }
+    public void setBoardStatusCurrentTeam(List<Character> status) {
+        if (activeTeam == null) return;
+        activeTeam.getPlayers().values().forEach(p -> p.sendBoardStatus(status));
+    }
 
     public void hideBoards() {
         players.values().forEach(ItemShufflePlayer::hideBoard);
+    }
+    public void hideBoardsCurrentTeam() {
+        if (activeTeam == null) return;
+        activeTeam.getPlayers().values().forEach(ItemShufflePlayer::hideBoard);
+    }
+
+    public void swapActiveTeam() {
+        if (teams.size() != 2) return;
+        List<ItemShuffleTeam> teamList = new ArrayList<>(teams.values());
+        if (activeTeam == null) {
+            int n = new Random().nextInt(2);
+            activeTeam = teamList.get(n);
+            return;
+        }
+        if (activeTeam == teamList.get(1)) {
+            activeTeam = teamList.get(0);
+        } else {
+            activeTeam = teamList.get(1);
+        }
+    }
+
+    public ItemShuffleTeam getActiveTeam() {
+        return activeTeam;
+    }
+
+    public void setActiveTeam(ItemShuffleTeam team) {
+        this.activeTeam = team;
     }
 }

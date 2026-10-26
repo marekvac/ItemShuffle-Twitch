@@ -99,7 +99,14 @@ public class ItemManager {
         return runQueue;
     }
 
+    public static final String[] LIMITED_WORDS = {
+            "Oak", "Birch", "Spruce", "Dark Oak", "Acacia", "Jungle", "Crimson", "Warped", "Mangrove", "Bamboo", "Cherry",
+            "White", "Orange", "Magenta", "Light Blue", "Yellow", "Lime", "Pink", "Gray", "Light Gray", "Cyan", "Purple", "Blue", "Brown", "Green", "Red", "Black",
+            "Candle", "Boat", "Rail"
+    };
+
     public List<Item> createBoard(int size) {
+        Set<String> limitedAdded = new HashSet<>();
         this.boardItems = Arrays.asList(new Item[size*size]);
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
@@ -107,9 +114,13 @@ public class ItemManager {
                 int t = 0;
                 while (!found) {
                     Item item = phaseManager.getItem();
-                    if (!boardItems.contains(item) || t > 30) {
-                        boardItems.set(i*size+j, item);
-                        found = true;
+                    if (item == null) continue;
+                    if (!boardItems.contains(item)) {
+                        if (limitedAdded.stream().noneMatch(s -> item.getName().getString().contains(s)) || t > 100) {
+                            boardItems.set(i*size+j, item);
+                            Arrays.stream(LIMITED_WORDS).filter(s -> item.getName().getString().contains(s)).findFirst().ifPresent(limitedAdded::add);
+                            found = true;
+                        }
                     }
                     t++;
                 }

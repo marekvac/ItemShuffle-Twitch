@@ -24,7 +24,7 @@ public class BoardRender {
 
     public int size;
     public int posX = 4;
-    public int posY = 4;
+    public int posY = 10;
     public List<Item> items;
     public List<Character> status;
 

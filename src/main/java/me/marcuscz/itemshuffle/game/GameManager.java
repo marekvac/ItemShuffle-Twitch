@@ -8,6 +8,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.Item;
 import org.json.simple.parser.ParseException;
+import org.lwjgl.util.freetype.TT_Header;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,15 +44,19 @@ public class GameManager {
     public ItemManager getItemManager() {
         return itemManager;
     }
+    
+    private GameSettings settings() {
+        return ItemShuffle.getInstance().getSettings();
+    }
 
     public boolean start() {
         if (active) {
             return false;
         }
 
-        ItemShuffle.logDebug("Starting game manager");
+        ItemShuffle.logDebug("Starting game manager: " + settings().gameType + ", ItemGenType: " + settings().itemType);
 
-        String type = ItemShuffle.ITEM_GEN_DIMENSION_TYPES.getOrDefault(ItemShuffle.getInstance().getSettings().itemGenDimension, "");
+        String type = ItemShuffle.ITEM_GEN_DIMENSION_TYPES.getOrDefault(settings().itemGenDimension, "");
         try {
             itemManager = new ItemManager(type);
         } catch (IOException | ParseException e) {
@@ -62,37 +67,55 @@ public class GameManager {
 
         ItemShuffle.logDebug("Item manager initialized");
 
-        if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD && playerManager.getTeams().isEmpty()) {
-            if (ItemShuffle.getInstance().getServer().getPlayerList().getPlayers().size() > 4) {
-                ItemShuffle.getInstance().broadcast("§cYou need to manually specify teams!");
-                return true;
-            }
-            try {
-                playerManager.autoTeams(ItemShuffle.getInstance().getServer().getPlayerList().getPlayers().size(), false);
-                for (int i = 0; i < ItemShuffle.getInstance().getServer().getPlayerList().getPlayers().size(); i++) {
-                    playerManager.joinPlayer(PlayerManager.TEAM_NAMES[i], ItemShuffle.getInstance().getServer().getPlayerList().getPlayers().get(i));
+        if (settings().gameType.isBoardType()) {
+            if (playerManager.getTeams().isEmpty()) {
+                if (settings().gameType == GameType.BOARD && ItemShuffle.getInstance().getServer().getPlayerList().getPlayers().size() > 4) {
+                    ItemShuffle.getInstance().broadcast("§cYou need to manually specify teams!");
+                    return true;
                 }
-            } catch (Exception e) {
-                ItemShuffle.getInstance().broadcast("§cFailed to auto create teams for board. Create teams manually.");
-                e.printStackTrace();
-                return true;
+                try {
+                    int nteams = settings().gameType == GameType.BOARD ? 4 : 2;
+                    playerManager.autoTeams(nteams, false);
+                    for (int i = 0; i < ItemShuffle.getInstance().getServer().getPlayerList().getPlayers().size(); i++) {
+                        var p = ItemShuffle.getInstance().getServer().getPlayerList().getPlayers().get(i);
+                        playerManager.joinPlayer(PlayerManager.TEAM_NAMES[i % nteams], p);
+                    }
+                } catch (Exception e) {
+                    ItemShuffle.getInstance().broadcast("§cFailed to auto create teams for board. Create teams manually.");
+                    e.printStackTrace();
+                    return true;
+                }
             }
+            if (settings().itemDifficulty > 0) itemManager.increaseRounds(2);
+            if (settings().itemDifficulty > 1) itemManager.increaseRounds(4);
+            if (settings().itemDifficulty > 2) itemManager.increaseRounds(5);
         }
+
+        if (settings().gameType == GameType.TIC_TAC_TOE && playerManager.getTeams().size() != 2) {
+            ItemShuffle.getInstance().broadcast("§cTic Tac Toe requires exactly 2 teams!");
+            return true;
+        }
+
+        if (settings().gameType.isBoardType()) {
+            itemManager.createBoard(settings().boardSize);
+        }
+
 
         ItemShuffle.logDebug("Board condition checked");
 
+        ItemShuffle.logDebug("Next round from start");
         nextRound();
 
         ItemShuffle.logDebug("next round initialized");
 
-        if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
+        if (settings().gameType == GameType.TWITCH) {
             playerManager.startVotingClients();
             playerManager.createNewVotes(itemManager);
         }
-        if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
+        if (settings().itemType == ItemGenType.ALL_SAME_VS) {
             playerManager.resetPlayerScores();
         }
-        if (ItemShuffle.getInstance().getSettings().giveFood) {
+        if (settings().giveFood) {
             playerManager.giveFoods();
         }
         active = true;
@@ -111,11 +134,11 @@ public class GameManager {
             active = false;
             playerManager.hideTimers();
             playerManager.hideItems();
-            if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD) playerManager.hideBoards();
-            if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
+            if (settings().gameType.isBoardType()) playerManager.hideBoards();
+            if (settings().gameType == GameType.TWITCH) {
                 playerManager.stopVotingClients();
             }
-            if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
+            if (!settings().gameType.isBoardType() && settings().itemType == ItemGenType.ALL_SAME_VS) {
                 showVsScore();
             }
             playerManager.clearPlayers();
@@ -141,6 +164,7 @@ public class GameManager {
             return false;
         }
         if (pausedDueFail) {
+            ItemShuffle.logDebug("Next round from resume");
             nextRound();
             return true;
         }
@@ -152,19 +176,29 @@ public class GameManager {
 
     private void nextRound() {
         playerManager.refreshPlayers();
-        if (ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD) {
-            time = -1;
-            currentTime = time;
-            itemMsgSent = true;
-            paused = pausedDueFail = false;
-            timesUp = false;
-
-            reRollBoard(true);
+        playerManager.hideBoards();
+        if (settings().gameType.isBoardType()) {
+            if (settings().gameType == GameType.BOARD) {
+                time = -1;
+                currentTime = time;
+                itemMsgSent = true;
+                paused = pausedDueFail = false;
+                timesUp = false;
+            }
+            if (settings().gameType == GameType.TIC_TAC_TOE) {
+                time = settings().time;
+                currentTime = time;
+                itemMsgSent = true;
+                paused = pausedDueFail = false;
+                timesUp = false;
+                playerManager.updateTimers();
+            }
+            reRollBoard(false);
         } else {
-            time = ItemShuffle.getInstance().getSettings().time;
+            time = settings().time;
             currentTime = time;
 
-            if (ItemShuffle.getInstance().getSettings().itemType != ItemGenType.RUN) {
+            if (settings().itemType != ItemGenType.RUN) {
                 itemManager.nextRound(pausedDueFail ? 0.5 : 1);
                 if (PlayerManager.teamMode()) {
                     itemManager.getRandomItemsForTeams(playerManager.getTeams().values());
@@ -179,31 +213,51 @@ public class GameManager {
             paused = pausedDueFail = false;
             timesUp = false;
             playerManager.updateTimers();
-            if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
+            if (settings().gameType == GameType.TWITCH) {
                 playerManager.createNewVotes(itemManager);
             }
-            if (ItemShuffle.getInstance().getSettings().showItemsMode != ItemShowType.OFF) {
+            if (settings().showItemsMode != ItemShowType.OFF) {
                 playerManager.showItems();
                 playerManager.refreshOtherItems(true);
             }
-            if (ItemShuffle.getInstance().getSettings().gameType == GameType.TEAM) {
+            if (settings().gameType == GameType.TEAM) {
                 playerManager.refreshTeamData(true);
             }
         }
     }
 
-    public boolean reRollBoard(boolean start) {
-        if (ItemShuffle.getInstance().getSettings().gameType != GameType.BOARD || !start && !active) return false;
 
-        List<Item> boardItems = itemManager.createBoard(ItemShuffle.getInstance().getSettings().boardSize);
-        playerManager.initBoards(ItemShuffle.getInstance().getSettings().boardSize, boardItems);
-        playerManager.getPlayers().values().forEach(p -> p.setCompleted(false));
-        itemManager.increaseRounds(1);
+    public boolean reRollBoard(boolean start) {
+        if (!settings().gameType.isBoardType()) return false;
+
+        List<Item> boardItems;
+        if (start) {
+            boardItems = itemManager.createBoard(settings().boardSize);
+        } else {
+            boardItems = itemManager.boardItems;
+        }
+
+        if (settings().gameType == GameType.BOARD) {
+            playerManager.initBoards(settings().boardSize, boardItems);
+            playerManager.getPlayers().values().forEach(p -> p.setCompleted(false));
+            itemManager.increaseRounds(1);
+        } else if (settings().gameType == GameType.TIC_TAC_TOE) {
+            swapTicTacToeTeam();
+        }
         return true;
     }
 
+    public void swapTicTacToeTeam() {
+        if (settings().gameType != GameType.TIC_TAC_TOE) return;
+        playerManager.hideBoardsCurrentTeam();
+        playerManager.swapActiveTeam();
+        playerManager.initBoardsCurrentTeam(settings().boardSize, itemManager.boardItems);
+        playerManager.setBoardStatusCurrentTeam(itemManager.boardStatus);
+        ItemShuffle.getInstance().broadcast("§eIt's now §" + playerManager.getActiveTeam().getColor() + playerManager.getActiveTeam().getName() + "§e's turn!");
+    }
+
     public boolean skip() {
-        if (!active || ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN || ItemShuffle.getInstance().getSettings().gameType == GameType.BOARD) {
+        if (!active || settings().itemType == ItemGenType.RUN || settings().gameType == GameType.BOARD) {
             return false;
         }
         endRound(true);
@@ -216,7 +270,8 @@ public class GameManager {
         playerManager.refreshTeamData(false);
         playerManager.refreshOtherItems(false);
 
-        if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
+        if (settings().itemType == ItemGenType.ALL_SAME_VS || settings().gameType == GameType.TIC_TAC_TOE) {
+            ItemShuffle.logDebug("Next round from endRound ALL_SAME_VS or TIC_TAC_TOE");
             nextRound();
             return;
         }
@@ -229,13 +284,15 @@ public class GameManager {
             pauseOrContinue(isSkip);
         } else {
             ItemShuffle.getInstance().broadcast("§aEveryone found their item!");
+            ItemShuffle.logDebug("Next round from endRound everyone completed");
             nextRound();
         }
     }
 
     private void pauseOrContinue(boolean isSkip) {
         pausedDueFail = true;
-        if (isSkip || !ItemShuffle.getInstance().getSettings().pauseOnFail) {
+        if (isSkip || !settings().pauseOnFail) {
+            ItemShuffle.logDebug("Next round from pauseOrContinue");
             nextRound();
         } else {
             pause();
@@ -285,27 +342,35 @@ public class GameManager {
         }
         ItemShuffleTeam team = playerManager.getPlayersTeam(player.getUuid());
         if (team == null) {
+            ItemShuffle.getLogger().error("completeBoardItem: player is not in a team, but should be");
             return;
         }
         ItemShuffle.getInstance().broadcast("§7Team §" + team.getColor() + team.getName() + "§7 found item §f" + item.getName().getString());
         itemManager.completedBoardItems.add(item);
         itemManager.boardStatus.set(n, team.getColor());
-        playerManager.setBoardStatus(itemManager.boardStatus);
+        if (settings().gameType == GameType.BOARD) playerManager.setBoardStatus(itemManager.boardStatus);
 
         if (checkBoardStatus(itemManager.boardStatus)) {
+            playerManager.initBoards(settings().boardSize, itemManager.boardItems);
+            playerManager.setBoardStatus(itemManager.boardStatus);
             ItemShuffle.getInstance().broadcast("§7Team §" + team.getColor() + team.getName() + "§7 has won!");
+            playerManager.setActiveTeam(null);
             pausedDueFail = true;
             pause();
+        } else {
+            if (settings().gameType == GameType.TIC_TAC_TOE) {
+                nextRound();
+            }
         }
     }
 
     public boolean checkBoardStatus(List<Character> status) {
-        for (int i = 0; i < ItemShuffle.getInstance().getSettings().boardSize; i++) {
-            for (int j = 0; j < ItemShuffle.getInstance().getSettings().boardSize; j++) {
-                Character s = status.get(i*ItemShuffle.getInstance().getSettings().boardSize + j);
+        for (int i = 0; i < settings().boardSize; i++) {
+            for (int j = 0; j < settings().boardSize; j++) {
+                Character s = status.get(i*settings().boardSize + j);
                 if (s == null) continue;
                 // 0, -1 ; 1, -1 ; 1, 0 ; 1 , 1
-                int t = ItemShuffle.getInstance().getSettings().boardTarget;
+                int t = settings().boardTarget;
                 if (checkDir(status, s, i, j, 0,-1,1) >= t || checkDir(status, s, i, j, 1, -1, 1) >= t || checkDir(status, s, i, j, 1, 0, 1) >= t || checkDir(status, s, i, j, 1, 1, 1) >= t) {
                     return true;
                 }
@@ -320,10 +385,10 @@ public class GameManager {
     }
 
     private Character getListItem(List<Character> status, int x, int y) {
-        if (x < 0 || x >= ItemShuffle.getInstance().getSettings().boardSize || y < 0 || y >= ItemShuffle.getInstance().getSettings().boardSize) {
+        if (x < 0 || x >= settings().boardSize || y < 0 || y >= settings().boardSize) {
             return null;
         }
-        return status.get(x*ItemShuffle.getInstance().getSettings().boardSize + y);
+        return status.get(x*settings().boardSize + y);
     }
 
     public void tick(MinecraftServer minecraftServer) {
@@ -331,7 +396,7 @@ public class GameManager {
             return;
         }
 
-        if (currentTime > 0) currentTime--;
+        currentTime--;
 
         // Send item messages to players later, because networking is faster than broadcast
         if (!itemMsgSent && time - currentTime > 5) {
@@ -342,21 +407,21 @@ public class GameManager {
         if ((currentTime % 20) == 0) {
 
             // Get Voting Items winner from clients
-            if (ItemShuffle.getInstance().getSettings().gameType == GameType.TWITCH) {
+            if (settings().gameType == GameType.TWITCH) {
                 playerManager.askVotingClientsForWinners();
             }
 
             // Check players items
             playerManager.checkAllPlayersItem();
 
-            if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.ALL_SAME_VS) {
+            if (!settings().gameType.isBoardType() && settings().itemType == ItemGenType.ALL_SAME_VS) {
                 if (playerManager.isAnyoneCompleted()) {
                     showVsScore();
                     endRound(false);
                 }
             } else {
-                if (playerManager.isEveryoneCompleted()) {
-                    if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
+                if (!settings().gameType.isBoardType() && playerManager.isEveryoneCompleted()) {
+                    if (settings().itemType == ItemGenType.RUN) {
                         showRunScore();
                         stop();
                     } else {
@@ -373,10 +438,13 @@ public class GameManager {
                     playerManager.updateTimers(ARGB.color(150,170,50,50));
                 }
                 if (currentTime == 0) {
-                    if (ItemShuffle.getInstance().getSettings().itemType == ItemGenType.RUN) {
+                    if (settings().itemType == ItemGenType.RUN) {
                         showRunScore();
                         stop();
                     } else {
+                        if (settings().gameType == GameType.TIC_TAC_TOE) {
+                            ItemShuffle.getInstance().broadcast("§cTeam §" + playerManager.getActiveTeam().getColor() + playerManager.getActiveTeam().getName() + "§c ran out of time!");
+                        }
                         endRound(false);
                     }
                     return;

@@ -19,6 +19,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.json.simple.parser.ParseException;
 
@@ -156,8 +157,10 @@ public class ItemShuffleClient implements ClientModInitializer {
 
     public void saveGameSettings() {
         if (Minecraft.getInstance().getConnection() != null && !Minecraft.getInstance().getConnection().getConnection().isMemoryConnection()) {
+            ItemShuffle.logDebug("Sending settings to server");
             ClientPlayNetworking.send(new GenericPayload(SETTING_SYNC_ID, ItemShuffle.getInstance().getSettings().toPacket()));
         } else {
+            ItemShuffle.logDebug("Saving settings locally");
             ItemShuffle.getInstance().saveSettings();
         }
     }

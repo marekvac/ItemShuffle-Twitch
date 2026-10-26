@@ -85,10 +85,19 @@ public class ItemShuffleCommandManager {
     }
 
     private int whatBoardItem(CommandContext<CommandSourceStack> ctx) {
-        if (ItemShuffle.getInstance().getSettings().gameType != GameType.BOARD) return 1;
+        if (!ItemShuffle.getInstance().getSettings().gameType.isBoardType()) return 1;
         if (!GameManager.isActive()) {
             ctx.getSource().sendFailure(Component.literal("§cGame is not running"));
             return 1;
+        }
+        if (ItemShuffle.getInstance().getSettings().gameType == GameType.TIC_TAC_TOE) {
+            if (!ctx.getSource().isPlayer()) return 1;
+            var team = GameManager.getInstance().getPlayerManager().getPlayersTeam(ctx.getSource().getPlayer().getUUID());
+            if (team == null) return 1;
+            if (team != GameManager.getInstance().getPlayerManager().getActiveTeam()) {
+                ctx.getSource().sendFailure(Component.literal("§cIt's not your turn!"));
+                return 1;
+            }
         }
         int n = ctx.getArgument("n", Integer.class);
         if (n > ItemShuffle.getInstance().getSettings().boardSize*ItemShuffle.getInstance().getSettings().boardSize || n < 1) {

@@ -3,6 +3,7 @@ package me.marcuscz.itemshuffle.game.phase;
 import me.marcuscz.itemshuffle.ItemShuffle;
 import net.minecraft.world.item.Item;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -44,9 +45,11 @@ public class ItemPhase {
     private static PhaseItem getRandomItem(List<PhaseItem> items, int currentPhase) {
         // 1. Nejprve si vyfiltrujeme kandidáty do listu.
         // Děláme to jen jednou, abychom nemuseli streamovat dvakrát (tvůj původní kód to dělal 2x).
-        List<PhaseItem> candidates = items.stream()
+        List<PhaseItem> candidates = new ArrayList<>(items.stream()
                 .filter(ItemPhase::filterItem) // Předpokládám, že toto je tvůj filtr dostupnosti
-                .toList();
+                .toList());
+
+        Collections.shuffle(candidates, random);
 
         if (candidates.isEmpty()) {
             return null;

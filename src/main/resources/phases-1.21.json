@@ -1,7 +1,7 @@
 {
   "version":
   {
-    "file": 5.0,
+    "file": 5.1,
     "custom": false
   },
   "phases": [
@@ -172,7 +172,8 @@
         "minecraft:wooden_spear",
         "minecraft:iron_spear",
         "minecraft:golden_spear",
-        "minecraft:diamond_spear"
+        "minecraft:diamond_spear",
+        "minecraft:apple"
       ],
       "standing_only": [
         "minecraft:coal_ore",
@@ -278,7 +279,15 @@
         "minecraft:stripped_mangrove_wood",
         "minecraft:packed_mud",
         "minecraft:waxed_copper_block",
-        "minecraft:waxed_copper_chain"
+        "minecraft:waxed_copper_chain",
+        "minecraft:dropper",
+        "minecraft:dispenser",
+        "minecraft:hopper",
+        "minecraft:rail",
+        "minecraft:powered_rail",
+        "minecraft:detector_rail",
+        "minecraft:activator_rail",
+        "minecraft:golden_apple"
       ],
       "standing_only": [
         "minecraft:lapis_ore",
@@ -324,7 +333,10 @@
         "minecraft:bamboo_stairs",
         "minecraft:bamboo_mosaic",
         "minecraft:bamboo_fence",
-        "minecraft:bamboo_chest_raft"
+        "minecraft:bamboo_chest_raft",
+        "minecraft:ender_pearl",
+        "minecraft:comparator",
+        "minecraft:beehive"
       ],
       "standing_only": [
         "minecraft:cactus",
@@ -362,7 +374,9 @@
         "minecraft:crimson_hanging_sign",
         "minecraft:observer",
         "minecraft:copper_bulb",
-        "minecraft:waxed_copper_bulb"
+        "minecraft:waxed_copper_bulb",
+        "minecraft:ender_chest",
+        "minecraft:ender_eye"
       ],"standing_only": [
       "minecraft:nether_gold_ore",
       "minecraft:nether_quartz_ore",

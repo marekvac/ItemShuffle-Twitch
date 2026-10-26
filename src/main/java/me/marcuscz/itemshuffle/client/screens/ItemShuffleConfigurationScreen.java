@@ -81,7 +81,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
                 150,
                 20
         ).build();
-        itemTypeWidget.active = settings.gameType != GameType.TWITCH && settings.gameType != GameType.BOARD;
+        itemTypeWidget.active = settings.gameType != GameType.TWITCH && !settings.gameType.isBoardType();
         this.addRenderableWidget(itemTypeWidget);
 
         Button itemDimensionWidget = Button.builder(
@@ -140,7 +140,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
                 150,
                 20
         ).build();
-        boardTargetWidget.active = settings.gameType == GameType.BOARD && settings.boardSize > 3;
+        boardTargetWidget.active = settings.gameType.isBoardType() && settings.boardSize > 3;
         this.addRenderableWidget(boardTargetWidget);
 
         Button boardSizeWidget = Button.builder(
@@ -164,7 +164,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
                 150,
                 20
         ).build();
-        boardSizeWidget.active = settings.gameType == GameType.BOARD;
+        boardSizeWidget.active = settings.gameType.isBoardType();
         this.addRenderableWidget(boardSizeWidget);
 
 
@@ -231,7 +231,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
                 150,
                 20
         ).build();
-        pauseOnFailWidget.active = settings.gameType != GameType.BOARD;
+        pauseOnFailWidget.active = !settings.gameType.isBoardType();
         this.addRenderableWidget(pauseOnFailWidget);
 
         Button showItemWidget = Button.builder(
@@ -251,7 +251,7 @@ public class ItemShuffleConfigurationScreen extends Screen {
                 150,
                 20
         ).build();
-        showItemWidget.active = settings.gameType != GameType.BOARD;
+        showItemWidget.active = !settings.gameType.isBoardType();
         this.addRenderableWidget(showItemWidget);
 
         Button gameTypeWidget = Button.builder(
@@ -289,6 +289,13 @@ public class ItemShuffleConfigurationScreen extends Screen {
                             showItemWidget.active = false;
                             pauseOnFailWidget.active = false;
                             showTimersWidget.active = false;
+                            break;
+                        case TIC_TAC_TOE:
+                            boardSizeWidget.active = true;
+                            boardTargetWidget.active = true;
+                            showItemWidget.active = false;
+                            pauseOnFailWidget.active = false;
+                            showTimersWidget.active = true;
                             break;
                         case SOLO:
                             itemTypeWidget.active = true;
